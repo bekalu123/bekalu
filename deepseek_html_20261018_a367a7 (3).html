@@ -1,0 +1,1946 @@
+<!DOCTYPE html>
+<html lang="am">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ኮልፌ ኢንዱስትሪያል ኮሌጅ የጨረታ ማወዳደሪያና የሰፕላየር መምረጫ ሲስተም</title>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
+    <style>
+        :root {
+            --primary-navy: #1F4E78; --accent-blue: #2F5597; --light-bg: #F4F6F9;
+            --border-color: #D9D9D9; --text-color: #333; --success-green: #28A745;
+            --update-orange: #FD7E14; --win-bg: #C6EFCE; --win-text: #006100;
+            --fail-bg: #FFC7CE; --fail-text: #9C0006; --warn-bg: #FFF2CC; --warn-text: #B25900;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; user-select: none; }
+        input, textarea, select, .letter-preview-card, .table-responsive td, .table-responsive th { user-select: text; }
+        body { background-color: var(--light-bg); color: var(--text-color); padding: 20px; font-size: 14px; min-height: 100vh; display: flex; flex-direction: column; }
+        .main-container { flex: 1; }
+        .header { background: linear-gradient(135deg, #1F4E78, #2F5597); color: white; padding: 20px 30px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 20px; position: relative; }
+        .header-logo { width: 85px; height: 85px; object-fit: contain; background: white; padding: 5px; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.2); flex-shrink: 0; }
+        .header-text h1 { font-size: 24px; margin-bottom: 6px; font-weight: bold; }
+        .header-text p { font-size: 14px; opacity: 0.95; }
+        .header-user-info { margin-left: auto; display: none; align-items: center; gap: 12px; background: rgba(255,255,255,0.15); padding: 8px 16px; border-radius: 20px; backdrop-filter: blur(10px); }
+        .header-user-info.visible { display: flex; }
+        .user-avatar {
+            width: 42px; height: 42px; border-radius: 50%;
+            background: linear-gradient(135deg, #FFCC00, #FD7E14);
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 18px; color: white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            flex-shrink: 0;
+            text-transform: uppercase;
+        }
+        .header-user-info .user-details { display: flex; flex-direction: column; }
+        .header-user-info .user-details .user-name { font-weight: bold; font-size: 13px; }
+        .header-user-info .user-details .user-role { font-size: 11px; opacity: 0.85; }
+        .header-btn { background: rgba(255,255,255,0.25); color: white; border: none; padding: 6px 14px; border-radius: 15px; font-size: 12px; font-weight: bold; cursor: pointer; transition: background 0.2s; margin-left: 5px; }
+        .header-btn:hover { background: rgba(255,255,255,0.4); }
+        .footer { margin-top: 30px; background: var(--primary-navy); color: white; text-align: center; padding: 15px; border-radius: 6px; font-size: 13px; font-weight: 500; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
+        .tab-menu { display: flex; background-color: var(--primary-navy); border-radius: 8px 8px 0 0; position: relative; z-index: 100; flex-wrap: wrap; }
+        .tab-btn { background: none; border: none; color: #E0E0E0; padding: 14px 18px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; border-bottom: 4px solid transparent; display: inline-block; }
+        .tab-btn:hover { background-color: rgba(255,255,255,0.1); color: white; }
+        .tab-btn.active { background-color: var(--accent-blue); color: #FFFFFF; border-bottom: 4px solid #FFCC00; }
+        .dropdown-tab { position: relative; display: inline-block; }
+        .dropdown-content { display: none; position: absolute; right: 0; top: 100%; background-color: #1F4E78; min-width: 280px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.3); border-radius: 0 0 8px 8px; z-index: 1000; overflow: hidden; }
+        .dropdown-tab:hover .dropdown-content { display: block; }
+        .dropdown-content button { color: white; padding: 12px 16px; text-decoration: none; display: block; width: 100%; text-align: left; background: none; border: none; font-size: 13px; font-weight: 600; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .dropdown-content button:hover { background-color: var(--accent-blue); color: #FFCC00; }
+        .tab-content { display: none; background: white; padding: 25px; border-radius: 0 0 8px 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); min-height: 500px; }
+        .tab-content.active { display: block; }
+        .control-panel { background-color: #F8F9FA; border: 1px solid var(--border-color); padding: 18px; border-radius: 6px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .control-panel label { font-weight: bold; color: var(--primary-navy); font-size: 13px; }
+        .control-panel select, .control-panel input { padding: 9px 12px; border-radius: 5px; border: 1px solid #CCC; font-size: 13px; outline: none; background: white; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group label { font-weight: bold; font-size: 12px; color: var(--primary-navy); }
+        .form-group input, .form-group select { padding: 9px; border: 1px solid #CCC; border-radius: 4px; font-size: 13px; }
+        .table-responsive { width: 100%; overflow-x: auto; max-height: 650px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px; }
+        table { width: 100%; border-collapse: separate; border-spacing: 0; background: white; }
+        th, td { border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); padding: 10px 12px; text-align: left; vertical-align: middle; font-size: 13px; }
+        th { background-color: var(--primary-navy); color: white; position: sticky; top: 0; z-index: 10; font-weight: 600; box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.2); }
+        tr:nth-child(even) { background-color: #F9FBFD; }
+        tr:hover { background-color: #F1F5F9; }
+        .supplier-checkbox-group { display: flex; flex-direction: column; gap: 4px; max-height: 120px; overflow-y: auto; padding: 6px; background: #FAFAFA; border: 1px solid #DDD; border-radius: 4px; }
+        .checkbox-label { display: flex; align-items: center; gap: 6px; font-size: 12px; cursor: pointer; user-select: none; padding: 2px 4px; border-radius: 3px; }
+        .checkbox-label:hover { background: #E9ECEF; }
+        .checkbox-label input[type="checkbox"] { cursor: pointer; accent-color: var(--accent-blue); }
+        .price-input { width: 130px; padding: 6px 8px; border: 1px solid #CCC; border-radius: 4px; font-size: 13px; text-align: right; outline: none; }
+        .price-input:focus { border-color: var(--accent-blue); box-shadow: 0 0 4px rgba(47,85,151,0.3); }
+        .btn-group { display: flex; gap: 12px; margin-top: 18px; flex-wrap: wrap; }
+        .btn { background-color: var(--success-green); color: white; border: none; padding: 10px 20px; border-radius: 5px; font-size: 13px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        .btn:hover { background-color: #218838; }
+        .btn-update { background-color: var(--update-orange); color: white; border: none; padding: 10px 20px; border-radius: 5px; font-size: 13px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        .btn-update:hover { background-color: #E06B0E; }
+        .btn-export { background-color: #17A2B8; color: white; border: none; padding: 9px 15px; border-radius: 5px; font-size: 13px; font-weight: bold; cursor: pointer; transition: background 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-export:hover { background-color: #138496; }
+        .btn-word { background-color: #2B579A; color: white; border: none; padding: 9px 15px; border-radius: 5px; font-size: 13px; font-weight: bold; cursor: pointer; transition: background 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-word:hover { background-color: #1E3E6D; }
+        .btn-print { background-color: #6C757D; color: white; border: none; padding: 9px 15px; border-radius: 5px; font-size: 13px; font-weight: bold; cursor: pointer; transition: background 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-print:hover { background-color: #5A6268; }
+        .btn-danger { background-color: #DC3545; color: white; border: none; padding: 9px 15px; border-radius: 5px; font-size: 13px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        .btn-danger:hover { background-color: #B02A37; }
+        .badge-win { background-color: var(--win-bg); color: var(--win-text); padding: 5px 10px; border-radius: 4px; font-weight: bold; display: inline-block; }
+        .badge-fail { background-color: var(--fail-bg); color: var(--fail-text); padding: 5px 10px; border-radius: 4px; display: inline-block; }
+        .badge-nobid { background-color: #E2E3E5; color: #383D41; padding: 5px 10px; border-radius: 4px; display: inline-block; }
+        .badge-high { background-color: var(--warn-bg); color: var(--warn-text); padding: 5px 10px; border-radius: 4px; font-weight: bold; display: inline-block; }
+        .stats-card { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .card { background: #F8F9FA; border: 1px solid var(--border-color); border-left: 5px solid var(--accent-blue); padding: 15px; border-radius: 5px; }
+        .card h4 { font-size: 12px; color: #666; text-transform: uppercase; margin-bottom: 5px; }
+        .card p { font-size: 20px; font-weight: bold; color: var(--primary-navy); }
+        .notice-box { background-color: #E7F1FF; border-left: 4px solid #0D6EFD; padding: 12px 15px; margin-bottom: 15px; border-radius: 4px; font-size: 13px; }
+
+        /* OFFICIAL LETTER TEMPLATE */
+        .letter-preview-card { background: #FFFFFF; border: 1px solid #CCC; padding: 40px 50px; border-radius: 6px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); max-width: 950px; margin: 0 auto; color: #111; line-height: 1.8; font-size: 12px; }
+        .official-letter-header { width: 100%; border-collapse: collapse; margin-bottom: 20px; border: 2px solid #1F4E78; }
+        .official-letter-header td { border: 1px solid #1F4E78; vertical-align: middle; padding: 8px 12px; }
+        .olh-logo-cell { width: 18%; text-align: center; background: #FFFFFF; }
+        .olh-logo-cell img { width: 70px; height: 70px; object-fit: contain; display: block; margin: 0 auto 4px; }
+        .olh-logo-cell .effective-date { font-size: 10px; font-weight: bold; color: #1F4E78; margin-top: 2px; }
+        .olh-title-cell { width: 44%; text-align: center; }
+        .olh-title-cell .company-name-am { font-size: 14px; font-weight: bold; color: #1F4E78; margin-bottom: 2px; }
+        .olh-title-cell .company-name-en { font-size: 12px; font-weight: bold; color: #1F4E78; margin-bottom: 6px; letter-spacing: 0.5px; }
+        .olh-title-cell .title-block { display: flex; justify-content: center; gap: 8px; margin-top: 6px; border-top: 1px dashed #1F4E78; padding-top: 6px; }
+        .olh-title-cell .title-label { font-weight: bold; font-size: 11px; color: #1F4E78; }
+        .olh-title-cell .title-values { text-align: left; }
+        .olh-title-cell .title-am { font-size: 12px; font-weight: bold; color: #1F4E78; }
+        .olh-title-cell .title-en { font-size: 10px; font-weight: bold; color: #1F4E78; }
+        .olh-doc-cell { width: 20%; text-align: center; font-size: 11px; color: #1F4E78; }
+        .olh-doc-cell .doc-label { font-weight: bold; font-size: 10px; }
+        .olh-doc-cell .doc-no { font-weight: bold; font-size: 12px; color: #1F4E78; margin: 2px 0 6px; }
+        .olh-doc-cell .issue-row { display: flex; justify-content: space-around; border-top: 1px solid #1F4E78; padding-top: 4px; margin-top: 4px; font-size: 10px; font-weight: bold; }
+        .olh-iso-cell { width: 18%; text-align: center; }
+        .iso-stamp { display: inline-flex; flex-direction: column; justify-content: center; align-items: center; width: 82px; height: 82px; border-radius: 50%; border: 2px solid #1F4E78; padding: 4px; font-size: 8px; font-weight: bold; color: #1F4E78; text-align: center; line-height: 1.1; background: radial-gradient(circle at 50% 50%, #E8F0F8 0%, #FFFFFF 70%); }
+        .iso-stamp .iso-top { font-size: 9px; margin-bottom: 2px; }
+        .iso-stamp .iso-check { font-size: 22px; color: #C62828; font-weight: bold; line-height: 1; margin: 2px 0; }
+        .iso-stamp .iso-bottom { font-size: 8px; }
+        .letter-ref-date { text-align: right; font-size: 12px; font-weight: bold; margin: 15px 5px 25px 0; line-height: 2; }
+        .letter-recipient { margin: 0 0 20px 5px; font-weight: bold; font-size: 12px; line-height: 1.8; }
+        .letter-recipient .recipient-name { display: inline-block; min-width: 220px; padding-bottom: 1px; }
+        .letter-subject { text-align: center; font-size: 13px; font-weight: bold; text-decoration: underline; margin: 20px 0 25px; color: #111; }
+        .letter-body { margin-bottom: 20px; text-align: justify; font-size: 12px; line-height: 2; }
+        .letter-table { width: 100%; border-collapse: collapse; margin: 16px 0 20px; font-size: 11px; }
+        .letter-table th, .letter-table td { border: 1px solid #333; padding: 8px 10px; text-align: left; }
+        .letter-table th { background-color: #E7EEF6; color: #1F4E78; font-weight: bold; text-align: center; }
+        .letter-closing { margin: 25px 0 40px; text-align: right; font-weight: bold; font-size: 12px; }
+        .letter-cc-list { margin-top: 50px; font-size: 11px; }
+        .letter-cc-list .cc-title { font-weight: bold; text-decoration: underline; margin-bottom: 8px; font-size: 12px; }
+        .letter-cc-list ul { list-style: none; padding-left: 20px; }
+        .letter-cc-list li { margin-bottom: 4px; }
+        .letter-cc-list li::before { content: '➢ '; font-weight: bold; }
+
+        /* LOGIN & OVERLAYS */
+        .login-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #1F4E78 0%, #2F5597 50%, #1F4E78 100%); z-index: 99999; justify-content: center; align-items: center; overflow-y: auto; padding: 20px; }
+        .login-overlay.active { display: flex; }
+        .login-container { background: white; border-radius: 16px; box-shadow: 0 25px 80px rgba(0,0,0,0.4); width: 100%; max-width: 900px; display: flex; overflow: hidden; }
+        .login-left { flex: 1; background: linear-gradient(135deg, #1F4E78, #2F5597); color: white; padding: 50px 40px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+        .login-left .login-logo { width: 110px; height: 110px; object-fit: contain; background: white; padding: 10px; border-radius: 50%; box-shadow: 0 8px 25px rgba(0,0,0,0.3); margin-bottom: 25px; }
+        .login-left h2 { font-size: 22px; font-weight: bold; margin-bottom: 12px; }
+        .login-left p { font-size: 13px; opacity: 0.9; line-height: 1.6; margin-bottom: 25px; }
+        .login-left .feature-list { text-align: left; font-size: 12px; line-height: 2; opacity: 0.95; }
+        .login-right { flex: 1; padding: 50px 45px; display: flex; flex-direction: column; justify-content: center; }
+        .login-right h3 { color: var(--primary-navy); font-size: 24px; font-weight: bold; margin-bottom: 6px; }
+        .login-right .login-subtitle { color: #888; font-size: 13px; margin-bottom: 30px; }
+        .login-field { margin-bottom: 20px; }
+        .login-field label { display: block; font-size: 12px; font-weight: bold; color: var(--primary-navy); margin-bottom: 7px; text-transform: uppercase; }
+        .login-field .input-wrapper { position: relative; }
+        .login-field .input-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 16px; color: #999; }
+        .login-field input { width: 100%; padding: 13px 15px 13px 44px; border: 2px solid #E0E0E0; border-radius: 10px; font-size: 14px; outline: none; background: #FAFAFA; }
+        .login-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #1F4E78, #2F5597); color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .login-error { background: var(--fail-bg); color: var(--fail-text); padding: 12px 15px; border-radius: 8px; font-size: 13px; margin-bottom: 18px; display: none; font-weight: 500; border-left: 4px solid var(--fail-text); }
+        .login-error.show { display: block; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; justify-content: center; align-items: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: white; padding: 30px; border-radius: 8px; width: 440px; max-width: 90%; box-shadow: 0 5px 20px rgba(0,0,0,0.2); }
+
+        @media print {
+            body { background: white; padding: 0; }
+            .no-print, button { display: none !important; }
+            .header, .tab-menu, .footer, .control-panel, .notice-box, .btn-group, .dropdown-tab, .dropdown-content, .login-overlay { display: none !important; }
+            .tab-content { display: none !important; padding: 0; border: none; box-shadow: none; min-height: 0; }
+            .tab-content.active { display: block !important; }
+            .letter-preview-card { border: none; box-shadow: none; padding: 0; max-width: 100%; }
+            @page { margin: 15mm; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- LOGIN OVERLAY -->
+<div class="login-overlay active" id="loginOverlay">
+    <div class="login-container">
+        <div class="login-left">
+            <div class="login-left-content">
+                <img src="logo.jpg" alt="Logo" class="login-logo" onerror="this.onerror=null; this.src='logo.png';">
+                <h2>ኮልፌ ኢንዱስትሪያል ኮሌጅ</h2>
+                <p>የጨረታ ማወዳደሪያና የሰፕላየር መምረጫ ሲስተም</p>
+                <div class="feature-list">
+                    <div>✓ የአቅራቢዎች ምርጫ እና አስተዳደር</div>
+                    <div>✓ የዋጋ ማስገቢያ እና ማወዳደሪያ</div>
+                    <div>✓ የአሸናፊ መምረጫ ሲስተም</div>
+                    <div>✓ የጨረታ ውጤት ማጽደቂያ</div>
+                    <div>✓ የአሸናፊ ማሳወቂያ ደብዳቤ</div>
+                </div>
+            </div>
+        </div>
+        <div class="login-right">
+            <h3>🔐 እንኳን ደህና መጡ</h3>
+            <p class="login-subtitle">እባክዎ የመግቢያ መረጃዎን ያስገቡ</p>
+            <div class="login-error" id="loginError">❌ የተሳሳተ የተጠቃሚ ስም ወይም የይለፍ ቃል! እባክዎ እንደገና ይሞክሩ።</div>
+            <div class="login-field">
+                <label>የተጠቃሚ ስም (Username)</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">👤</span>
+                    <input type="text" id="loginUsername" placeholder="የተጠቃሚ ስም ያስገቡ..." autocomplete="off" onkeydown="if(event.key==='Enter') performLogin()">
+                </div>
+            </div>
+            <div class="login-field">
+                <label>የይለፍ ቃል (Password)</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">🔑</span>
+                    <input type="password" id="loginPassword" placeholder="የይለፍ ቃል ያስገቡ..." autocomplete="off" onkeydown="if(event.key==='Enter') performLogin()">
+                </div>
+            </div>
+            <button class="login-btn" onclick="performLogin()">🔓 ግባ (Login)</button>
+        </div>
+    </div>
+</div>
+
+<!-- FIRST LOGIN PASSWORD CHANGE -->
+<div class="modal" id="firstLoginModal">
+    <div class="modal-content" style="width: 450px;">
+        <h3 style="color: var(--primary-navy); margin-bottom: 10px;">🔒 የመጀመሪያ ጊዜ የይለፍ ቃል መቀየሪያ</h3>
+        <p style="font-size: 12px; color: #555; margin-bottom: 15px;">በሲስተሙ የተሰጠውን ጊዜያዊ ፓስዎርድ ተጠቅመው ስለገቡ፣ አሁን አዲስ እና ሚስጥራዊ የይለፍ ቃል ሊያወጡ ይገባል፡</p>
+        <div class="form-group" style="margin-bottom: 12px;">
+            <label>አዲስ የይለፍ ቃል (New Password):</label>
+            <input type="password" id="firstLoginNewPass" placeholder="አዲስ ፓስዎርድ...">
+        </div>
+        <div class="form-group" style="margin-bottom: 15px;">
+            <label>የይለፍ ቃል ያረጋግጡ (Confirm Password):</label>
+            <input type="password" id="firstLoginConfirmPass" placeholder="የይለፍ ቃል እንደገና ያስገቡ...">
+        </div>
+        <button class="btn" style="width: 100%;" onclick="submitFirstLoginPassword()">ፓስዎርድ ቀይርና ጀምር</button>
+    </div>
+</div>
+
+<!-- CHANGE PASSWORD MODAL -->
+<div class="modal" id="passwordModal">
+    <div class="modal-content">
+        <h3 style="color: var(--primary-navy); margin-bottom: 15px;">🔑 የይለፍ ቃል መቀየሪያ</h3>
+        <div class="form-group" style="margin-bottom: 12px;">
+            <label>የአሁኑ የይለፍ ቃል (Old Password):</label>
+            <input type="password" id="oldPasswordInput" placeholder="የአሁኑ ፓስዎርድ...">
+        </div>
+        <div class="form-group" style="margin-bottom: 12px;">
+            <label>አዲስ የይለፍ ቃል (New Password):</label>
+            <input type="password" id="newPasswordInput" placeholder="አዲስ ፓስዎርድ...">
+        </div>
+        <div class="form-group" style="margin-bottom: 15px;">
+            <label>አዲስ የይለፍ ቃል ድጋሚ (Confirm New Password):</label>
+            <input type="password" id="confirmPasswordInput" placeholder="አዲስ ፓስዎርድ እንደገና...">
+        </div>
+        <div class="btn-group">
+            <button class="btn" onclick="saveNewPassword()">ቀይር</button>
+            <button class="btn-print" onclick="document.getElementById('passwordModal').classList.remove('active')">ይቅር</button>
+        </div>
+    </div>
+</div>
+
+<!-- ADD SUPPLIER MODAL -->
+<div class="modal" id="addSupplierModal">
+    <div class="modal-content" style="width: 520px;">
+        <h3 style="color: var(--primary-navy); margin-bottom: 15px;">➕ አዲስ አቅራቢ አክል (Add New Supplier)</h3>
+        <div class="form-group" style="margin-bottom: 12px;">
+            <label>ኮድ (Code):</label>
+            <input type="number" id="newSupCode" placeholder="ለምሳሌ: 30">
+        </div>
+        <div class="form-group" style="margin-bottom: 12px;">
+            <label>ስም (Name):</label>
+            <input type="text" id="newSupName" placeholder="የአቅራቢው ሙሉ ስም...">
+        </div>
+        <div class="form-group" style="margin-bottom: 15px;">
+            <label>የሚሳተፍባቸው ሎቶች (Participating Lots):</label>
+            <div id="newSupLotsContainer" style="display: flex; flex-wrap: wrap; gap: 10px; padding: 12px; background: #FAFAFA; border: 1px solid #DDD; border-radius: 4px; min-height: 40px;"></div>
+        </div>
+        <div class="btn-group">
+            <button class="btn" onclick="addNewSupplier()">➕ አክል</button>
+            <button class="btn-print" onclick="document.getElementById('addSupplierModal').classList.remove('active')">ይቅር</button>
+        </div>
+    </div>
+</div>
+
+<div class="main-container">
+    <div class="header no-print" style="position: relative;">
+        <img src="logo.jpg" alt="Kolfe Industrial College Logo" class="header-logo" onerror="this.onerror=null; this.src='logo.png';">
+        <div class="header-text">
+            <h1>ኮልፌ ኢንዱስትሪያል ኮሌጅ የጨረታ ማወዳደሪያና የሰፕላየር መምረጫ ሲስተም</h1>
+            <p>የአቅራቢዎች እና የካታሎጎች የጨረታ ማወዳደሪያና አስተዳደር ሙሉ ሲስተም</p>
+        </div>
+        <div class="header-user-info" id="headerUserInfo">
+            <div class="user-avatar" id="headerUserAvatar">A</div>
+            <div class="user-details">
+                <span class="user-name" id="headerUserName">-</span>
+                <span class="user-role" id="headerUserRole">-</span>
+            </div>
+            <button class="header-btn" onclick="openPasswordModal()">🔑 ፓስዎርድ ቀይር</button>
+            <button class="header-btn" onclick="performLogout()" style="background: rgba(220,53,69,0.4);">🚪 ውጣ</button>
+        </div>
+    </div>
+
+    <div class="tab-menu no-print">
+        <button class="tab-btn active" onclick="openTab(event, 'Home')">1. መነሻ ገጽ (Home)</button>
+        <button class="tab-btn" onclick="openTab(event, 'TechnicalSelectedSuppliers')">2. አቅራቢ መምረጫ (Technical Selected)</button>
+        <button class="tab-btn" onclick="openTab(event, 'PriceEntry')">3. የዋጋ ማስገቢያ (Price Entry)</button>
+        <button class="tab-btn" onclick="openTab(event, 'MarketPriceTab')">11. የገበያ ጥናት (Market Price)</button>
+        <button class="tab-btn" onclick="openTab(event, 'EvaluateWinner')">4. አሸናፊ መምረጫ (Evaluate Winner)</button>
+        <button class="tab-btn" onclick="openTab(event, 'SupportReports')">5. ማጠቃለያ ሪፖርት (Summary Reports)</button>
+        <button class="tab-btn" onclick="openTab(event, 'WinnerLetter')">6. አሸናፊ ደብዳቤ (Winner Letter)</button>
+        <div class="dropdown-tab">
+            <button class="tab-btn" id="managementDropdownBtn">⚙️ ተጨማሪ አስተዳደር (Management) ▾</button>
+            <div class="dropdown-content">
+                <button onclick="openTab(event, 'ManageCatalogs')">7. ካታሎጎች (Catalogs Add/Import)</button>
+                <button onclick="openTab(event, 'ManageSuppliers')">8. አቅራቢዎች ማስተዳደሪያ (Suppliers Manager)</button>
+                <button onclick="openTab(event, 'AdminUserResetTab')">🔐 የዩዘሮች ፓስዎርድ ሪሴት (Admin)</button>
+                <button onclick="openTab(event, 'ApproveUpdateTab')">9. የጨረታ ማጸደቂያ (Approval & Update)</button>
+                <button onclick="openTab(event, 'ApprovedLotsTab')">10. የተመረጡ ሎቶች (Approved Lots)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 1: HOME -->
+    <div id="Home" class="tab-content active">
+        <h3 style="color: var(--primary-navy); margin-bottom: 15px;">እንኳን ወደ ኮልፌ ኢንዱስትሪያል ኮሌጅ የጨረታ ማወዳደሪያና ሰፕላየር መምረጫ ሲስተም በሰላም መጡ!</h3>
+        <div class="notice-box">
+            <strong>የሲስተሙ አጠቃቀም መመሪያ / System Usage Guide:</strong><br>
+            1. <strong>አቅራቢ መምረጫ</strong> → <strong>የዋጋ ማስገቢያ</strong> → <strong>የገበያ ጥናት</strong> መረጃዎችን ያስገቡ።<br>
+            2. <strong>አሸናፊ መምረጫ</strong> ታብ በመጠቀም አሸናፊዎችን በራስ-ሰር ይለዩ።<br>
+            3. <strong>ማጠቃለያ ሪፖርት</strong> እና <strong>አሸናፊ ደብዳቤ</strong> በመጠቀም ሪፖርቶችን ይመልከቱ እና ደብዳቤዎችን ያትሙ።
+        </div>
+        <div class="stats-card" id="home-stats-container"></div>
+    </div>
+
+    <!-- TAB 2: TECHNICAL SELECTED SUPPLIERS -->
+    <div id="TechnicalSelectedSuppliers" class="tab-content">
+        <div class="notice-box"><strong>መመሪያ / Instruction:</strong> እያንዳንዱን ሎት በመምረጥ በቴክኒክ ያለፉ ተወዳዳሪ ሰፕላየሮችን ኮድ ብቻ ይምረጡ።</div>
+        <div class="control-panel">
+            <label for="lotSelect">የመወዳደሪያ ካታሎግ ሎት ይምረጡ / Select Lot:</label>
+            <select id="lotSelect" onchange="renderSupplierSelectionTable()"></select>
+            <button class="btn-export" style="margin-left: auto;" onclick="exportTableToExcel('supplier-selection-table', 'Technical_Selected', 'lotSelect')">📊 Excel Export</button>
+        </div>
+        <div class="table-responsive">
+            <table id="supplier-selection-table">
+                <thead>
+                    <tr>
+                        <th style="width: 60px;">ተ.ቁ</th>
+                        <th style="width: 200px;">የእቃው አይነት</th>
+                        <th style="width: 350px;">መግለጫ (Specification)</th>
+                        <th style="width: 80px;">መለኪያ</th>
+                        <th style="width: 80px;">ብዛት</th>
+                        <th style="width: 320px;">ተወዳዳሪ ሰፕላየሮች (ኮድ ብቻ / Codes Only)</th>
+                    </tr>
+                </thead>
+                <tbody id="supplier-selection-tbody"></tbody>
+            </table>
+        </div>
+        <div class="btn-group">
+            <button class="btn" onclick="saveSelectedSuppliers()">💾 የተመረጡ ሰፕላየሮችን መዝግብ (Save)</button>
+            <button class="btn-update" onclick="saveSelectedSuppliers()">🔄 አፕዴት አድርግ (Update)</button>
+        </div>
+    </div>
+
+    <!-- TAB 3: PRICE ENTRY -->
+    <div id="PriceEntry" class="tab-content">
+        <div class="notice-box"><strong>መመሪያ / Instruction:</strong> የተመረጡ ሰፕላየሮች የገባላቸውን የዋጋ ዝርዝር እዚህ ላይ አስገብተው <strong>ዋጋዎችን አስቀምጥ</strong> ወይም <strong>አፕዴት አድርግ</strong> የሚለውን ይጫኑ።</div>
+        <div class="control-panel">
+            <label for="priceLotSelect">ዋጋ ማስገቢያ ሎት ይምረጡ / Select Lot:</label>
+            <select id="priceLotSelect" onchange="renderPriceEntryTable()"></select>
+            <button class="btn-export" style="margin-left: auto;" onclick="exportTableToExcel('price-entry-table', 'Price_Entry', 'priceLotSelect')">📊 Excel Export</button>
+        </div>
+        <div class="table-responsive">
+            <table id="price-entry-table">
+                <thead id="price-entry-thead"></thead>
+                <tbody id="price-entry-tbody"></tbody>
+            </table>
+        </div>
+        <div class="btn-group">
+            <button class="btn" onclick="saveEnteredPrices()">💾 ዋጋዎችን አስቀምጥ (Save Prices)</button>
+            <button class="btn-update" onclick="saveEnteredPrices()">🔄 አፕዴት አድርግ (Update)</button>
+        </div>
+    </div>
+
+    <!-- TAB 11: MARKET PRICE -->
+    <div id="MarketPriceTab" class="tab-content">
+        <h3 style="color: var(--primary-navy); margin-bottom: 15px;">ታብ 11 - የገበያ ጥናት ዋጋዎች አስተዳደር (Market Price Management)</h3>
+        <div class="notice-box"><strong>መመሪያ / Instruction:</strong> ሎት ይምረጡ፤ የዛ ሎት እቃዎች በሙሉ በራስ-ሰር ይወጣሉ። ዋጋዎቹን ኤዲት አድርገው <strong>የገበያ ጥናት አስቀምጥ</strong> ይጫኑ።</div>
+        <div class="control-panel" style="background: #EBF3FA;">
+            <div class="form-group">
+                <label>ሎት ይምረጡ / Select Lot:</label>
+                <select id="marketLotSelect" onchange="renderMarketPriceTable()"></select>
+            </div>
+            <div class="form-group" style="flex: 1; margin-left: 10px;">
+                <label>የኤክሴል ፋይል ኢምፖርት / Excel Import:</label>
+                <input type="file" id="marketExcelFileInput" accept=".xlsx, .xls">
+            </div>
+            <div style="display: flex; gap: 8px; align-items: flex-end; margin-top: auto;">
+                <button class="btn" onclick="importMarketPriceExcel()">📥 ኤክሴል ኢምፖርት</button>
+                <button class="btn-export" onclick="exportTableToExcel('market-price-table', 'Market_Price', 'marketLotSelect')">📊 ኤክስፖርት</button>
+                <button class="btn-print" onclick="downloadSampleTemplate('market')">📥 ሳምፕል ቴምፕሌት</button>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table id="market-price-table">
+                <thead>
+                    <tr>
+                        <th style="width: 60px;">ተ.ቁ</th>
+                        <th>የእቃው አይነት</th>
+                        <th>መግለጫ</th>
+                        <th style="width: 90px;">መለኪያ</th>
+                        <th style="width: 90px;">ብዛት</th>
+                        <th style="width: 170px;">የገበያ ጥናት ዋጋ (ብር)</th>
+                    </tr>
+                </thead>
+                <tbody id="market-price-tbody"></tbody>
+            </table>
+        </div>
+        <div class="btn-group" style="margin-top: 15px;">
+            <button class="btn" onclick="saveMarketPrices()">💾 የገበያ ጥናት አስቀምጥ (Save Market Price)</button>
+            <button class="btn-update" onclick="saveMarketPrices()">🔄 አፕዴት አድርግ (Update)</button>
+        </div>
+    </div>
+
+    <!-- TAB 4: EVALUATE WINNER -->
+    <div id="EvaluateWinner" class="tab-content">
+        <div class="notice-box"><strong>የአሸናፊ መምረጫ መመሪያ:</strong> ሎት ይምረጡና <strong>አሸናፊ ለይ</strong> የሚለውን በተን ሲጫኑ የጨረታው አሸናፊዎች በሰንጠረዥ ይወጣሉ።</div>
+        <div class="control-panel">
+            <label for="evalLotSelect">ሎት ይምረጡ / Select Lot:</label>
+            <select id="evalLotSelect"></select>
+            <button class="btn" onclick="renderWinnerEvaluationTable()">🏆 አሸናፊ ለይ (Evaluate Winner)</button>
+            <button class="btn-export" style="margin-left: auto;" onclick="exportTableToExcel('winner-table', 'Evaluate_Winner', 'evalLotSelect')">📊 Excel Export</button>
+        </div>
+        <div class="table-responsive">
+            <table id="winner-table">
+                <thead>
+                    <tr>
+                        <th>ተ.ቁ</th><th>የእቃው አይነት</th><th>መግለጫ</th><th>መለኪያ</th><th>ብዛት</th>
+                        <th>የገበያ ጥናት ዋጋ</th><th>አነስተኛ የነጠላ VAT ያካተተ ዋጋ</th>
+                        <th>ጠቅላላ አነስተኛ ዋጋ</th><th>አሸናፊ ድርጅት ስም</th><th>የድርጅት ኮድ</th><th>ሁኔታ</th>
+                    </tr>
+                </thead>
+                <tbody id="winner-tbody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- TAB 5: SUMMARY REPORTS -->
+    <div id="SupportReports" class="tab-content">
+        <div class="notice-box"><strong>ማጠቃለያ ሪፖርት መመሪያ:</strong> ሎት ይምረጡ እና <strong>ማጠቃለያ ሪፖርት አሳይ</strong> የሚለውን በመጫን ሙሉውን የውድድር ውጤት ይመልከቱ።</div>
+        <div class="control-panel">
+            <label for="reportLotSelect">ሎት ይምረጡ / Select Lot:</label>
+            <select id="reportLotSelect"></select>
+            <button class="btn" onclick="renderSupportReportTable()">📊 ማጠቃለያ ሪፖርት አሳይ</button>
+            <button class="btn-export" style="margin-left: auto;" onclick="exportTableToExcel('report-table', 'Summary_Report', 'reportLotSelect')">📊 Excel Export</button>
+        </div>
+        <div class="table-responsive">
+            <table id="report-table">
+                <thead id="report-thead"></thead>
+                <tbody id="report-tbody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- TAB 6: WINNER LETTER -->
+    <div id="WinnerLetter" class="tab-content">
+        <div class="notice-box"><strong>መመሪያ / Instruction:</strong> ሎት እና አሸናፊ ነጋዴ ይምረጡ (አሸናፊዎች በዋንጫ 🏆 ምልክት ይታወቃሉ)። በስም መፈለግ ይችላሉ።</div>
+        <div class="control-panel">
+            <label for="letterLotSelect">ሎት / Lot:</label>
+            <select id="letterLotSelect" onchange="populateLetterSuppliersDropdown()"></select>
+            <label for="letterSupplierSearch">በስም ፈልግ / Search:</label>
+            <input type="text" id="letterSupplierSearch" oninput="filterLetterSuppliers()" placeholder="ስም ያስገቡ..." style="min-width:180px;">
+            <label for="letterSupplierSelect">አሸናፊ ነጋዴ / Winner:</label>
+            <select id="letterSupplierSelect" onchange="renderWinnerLetter()" style="min-width: 280px;"></select>
+            <div style="margin-left: auto; display: flex; gap: 8px;">
+                <button class="btn-word" onclick="exportLetterToWord()">📝 Word (.docx)</button>
+                <button class="btn-print" onclick="printLetter()">🖨️ ፕሪንት (Print)</button>
+            </div>
+        </div>
+
+        <div id="letter-container" class="letter-preview-card">
+            <table class="official-letter-header">
+                <tr>
+                    <td class="olh-logo-cell">
+                        <img src="logo.jpg" alt="Logo" onerror="this.onerror=null; this.src='logo.png';">
+                        <div class="effective-date">Effective date: 27-03-2025</div>
+                    </td>
+                    <td class="olh-title-cell">
+                        <div class="company-name-am">ኮልፌ ኢንዱስትሪያል ኮሌጅ</div>
+                        <div class="company-name-en">KOLFE INDUSTRIAL COLLEGE</div>
+                        <div class="title-block">
+                            <div class="title-label">Title:</div>
+                            <div class="title-values">
+                                <div class="title-am">የውስጥ ደብዳቤ</div>
+                                <div class="title-en">Internal Letter</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="olh-doc-cell">
+                        <div class="doc-label">Document No.</div>
+                        <div class="doc-no">OF/KIC/DN/001</div>
+                        <div class="issue-row">
+                            <div>Issue No. 1</div>
+                            <div>Page No. 1</div>
+                        </div>
+                    </td>
+                    <td class="olh-iso-cell">
+                        <div id="iso-cert-container" style="display:inline-block;">
+                            <img id="iso-cert-img" src="iso21001.jpg" alt="ISO 21001 ECAE" 
+                                 style="width:86px;height:86px;object-fit:contain;border-radius:50%;"
+                                 onerror="this.style.display='none';document.getElementById('iso-cert-fallback').style.display='flex';">
+                            <div id="iso-cert-fallback" class="iso-stamp" style="display:none;">
+                                <div class="iso-top">ISO 21001</div>
+                                <div class="iso-check">✓</div>
+                                <div class="iso-bottom">ECAE<br>CERTIFIED</div>
+                            </div>
+                        </div>
+                        <div class="no-print" style="margin-top:6px;">
+                            <input type="file" id="isoCertInput" accept="image/*" style="display:none;" onchange="uploadIsoCert(this)">
+                            <button class="btn-print" style="font-size:10px;padding:3px 8px;" onclick="document.getElementById('isoCertInput').click()">📷 ምስል ቀይር</button>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+
+            <div class="letter-ref-date">
+                <div class="ref-line">ቁጥር አ/ል/-------- 2019 ዓ.ም</div>
+                <div class="ref-line">ቀን <span id="letter-date-str">__/__/____</span> /2019 ዓ.ም</div>
+            </div>
+
+            <div class="letter-recipient">
+                <div>ለ <span class="recipient-name" id="letter-supplier-name-display">________________________</span></div>
+            </div>
+
+            <div class="letter-subject">ጉዳዩ፡- የጨረታ ውጤት ስለማሳወቅ ይሆናል</div>
+
+            <div class="letter-body" id="letter-body-content"></div>
+            <div id="letter-table-wrapper"></div>
+
+            <div class="letter-closing">ከሰላምታ ጋር፣</div>
+
+            <div class="letter-cc-list">
+                <div class="cc-title">ግልባጭ</div>
+                <ul>
+                    <li>ለዋና ዲን ፅ/ቤት</li>
+                    <li>ለፋይናንስ ዳይሮክተሬት</li>
+                    <li>ለመንግስት ግዢ ቡድን</li>
+                    <li>ለንብረት አስ/ጠ/አገ/ዳይሮክተሬት</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 7: MANAGE CATALOGS -->
+    <div id="ManageCatalogs" class="tab-content">
+        <h3 style="color: var(--primary-navy); margin-bottom: 15px;">ተጨማሪ ካታሎጎች / Catalogs Management</h3>
+        <div class="control-panel" style="background: #EBF3FA;">
+            <div class="form-group"><label>የአዲሱ ሎት ስም / New Lot Name:</label><input type="text" id="newLotNameInput" placeholder="Lot 4"></div>
+            <div class="form-group"><label>ኤክሴል ፋይል / Excel File:</label><input type="file" id="excelCatalogFileInput" accept=".xlsx, .xls"></div>
+            <button class="btn" onclick="importCatalogFromExcel()">📥 ሎት ኢምፖርት</button>
+            <button class="btn-print" onclick="downloadSampleTemplate('catalog')">📥 ሳምፕል ቴምፕሌት</button>
+        </div>
+        <div class="table-responsive">
+            <table>
+                <thead><tr><th>የሎት ስም</th><th>የእቃዎች ብዛት</th><th>ዳውንሎድ</th><th>ድርጊት</th></tr></thead>
+                <tbody id="catalogs-list-tbody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- TAB 8: MANAGE SUPPLIERS -->
+    <div id="ManageSuppliers" class="tab-content">
+        <h3 style="color: var(--primary-navy); margin-bottom: 15px;">አቅራቢዎችን ማስተዳደር / Suppliers Manager</h3>
+        <div class="notice-box"><strong>መመሪያ:</strong> የሰፕላየሮችን ኮድ፣ ስም ወይም በየሎቱ የሚሳተፉበትን (1 ለሚሳተፉ፣ 0 ለማይሳተፉ) በቀጥታ ሰንጠረዡ ውስጥ ኤዲት በማድረግ <strong>አስቀምጥ</strong> ይጫኑ። ተመሳሳይ ኮድ መስጠት የተከለከለ ነው።</div>
+        <div class="control-panel" style="background: #EBF3FA;">
+            <div class="form-group"><label>የአቅራቢዎች ኤክሴል ፋይል (ኮድ, ስም, Lot 1... በ 1 እና 0):</label><input type="file" id="suppliersExcelInput" accept=".xlsx, .xls"></div>
+            <button class="btn" onclick="importSuppliersExcel()">📥 አቅራቢዎች በኤክሴል ኢምፖርት</button>
+            <button class="btn-print" onclick="downloadSampleTemplate('suppliers')">📥 ሳምፕል ቴምፕሌት</button>
+            <button class="btn-update" style="margin-left: auto;" onclick="openAddSupplierModal()">➕ አዲስ አቅራቢ አክል</button>
+        </div>
+        <div class="table-responsive">
+            <table id="manage-suppliers-table">
+                <thead id="manage-suppliers-thead"></thead>
+                <tbody id="manage-suppliers-tbody"></tbody>
+            </table>
+        </div>
+        <div class="btn-group" style="margin-top: 15px;">
+            <button class="btn" onclick="saveSuppliersMasterChanges()">💾 አስቀምጥ (Save)</button>
+            <button class="btn-update" onclick="saveSuppliersMasterChanges()">🔄 አፕዴት አድርግ (Update)</button>
+        </div>
+    </div>
+
+    <!-- ADMIN PASSWORD RESET + CREATE USER -->
+    <div id="AdminUserResetTab" class="tab-content">
+        <h3 style="color: var(--primary-navy); margin-bottom: 15px;">🔐 የአስተዳዳሪ የዩዘሮች ፓስዎርድ ሪሴት</h3>
+        <div class="notice-box"><strong>መመሪያ:</strong> ማንኛውም ተጠቃሚ ፓስዎርዱን ቢረሳው, አድሚን ብቻ በዚህ ገጽ ገብቶ አዲስ ፓስዎርድ መስጠት ይችላል። ተጠቃሚው በሚቀጥለው ጊዜ ሲገባ ፓስዎርዱን እንዲቀይር ይጠየቃል።</div>
+
+        <h4 style="color: var(--primary-navy); margin: 15px 0 10px;">➕ አዲስ ዩዘር ፍጠር (Create New User)</h4>
+        <div class="control-panel" style="background: #EBF3FA;">
+            <div class="form-group"><label>የተጠቃሚ ስም (Username):</label><input type="text" id="newUsernameInput" placeholder="username"></div>
+            <div class="form-group"><label>ሙሉ ስም (Display Name):</label><input type="text" id="newDisplayNameInput" placeholder="Full Name"></div>
+            <div class="form-group"><label>ሚና (Role):</label><select id="newUserRoleSelect" style="min-width:200px;"></select></div>
+            <div class="form-group"><label>የመጀመሪያ ፓስዎርድ:</label><input type="text" id="newUserDefaultPass" placeholder="Default Password"></div>
+            <button class="btn" style="margin-top:auto;" onclick="createNewUser()">➕ ፍጠር</button>
+        </div>
+
+        <h4 style="color: var(--primary-navy); margin: 15px 0 10px;">👥 ነባር ዩዘሮች (Existing Users)</h4>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>የተጠቃሚ ስም</th>
+                        <th>ሙሉ ስም / ሚና</th>
+                        <th>የአሁኑ ፓስዎርድ</th>
+                        <th>አዲስ ፓስዎርድ</th>
+                        <th>ድርጊት</th>
+                    </tr>
+                </thead>
+                <tbody id="admin-user-reset-tbody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- TAB 9: APPROVE & UPDATE -->
+    <div id="ApproveUpdateTab" class="tab-content">
+        <h3 style="color: var(--primary-navy); margin-bottom: 15px;">የጨረታ ማጽደቂያና ማስተካከያ</h3>
+        <div class="notice-box"><strong>መመሪያ:</strong> ሎት ይምረጡና <strong>ሪፖርት አሳይ</strong> የሚለውን በመጫን ሪፖርቱን ይመልከቱ። ከዚያ <strong>Comment</strong> ወይም <strong>Approve</strong> ያድርጉ።</div>
+        <div class="control-panel">
+            <label for="approveLotSelect">ሎት ይምረጡ / Select Lot:</label>
+            <select id="approveLotSelect"></select>
+            <button class="btn" onclick="renderApproveUpdateTable()">📊 ሪፖርት አሳይ</button>
+        </div>
+        <div class="table-responsive">
+            <table id="approve-table">
+                <thead id="approve-thead"></thead>
+                <tbody id="approve-tbody"></tbody>
+            </table>
+        </div>
+        <div class="btn-group" style="margin-top: 20px;">
+            <div id="lot-comment-display" style="margin-right: auto; font-weight: bold; color: var(--primary-navy);"></div>
+            <button class="btn-update" onclick="addTenderComment()">💬 Comment</button>
+            <button class="btn" onclick="approveTenderProcess()">✅ Approve</button>
+        </div>
+    </div>
+
+    <!-- TAB 10: APPROVED LOTS -->
+    <div id="ApprovedLotsTab" class="tab-content">
+        <h3 style="color: var(--primary-navy); margin-bottom: 15px;">የተመረጡ ሎቶችና አስተያየቶች</h3>
+        <div class="table-responsive">
+            <table id="approved-lots-table">
+                <thead><tr><th>ተ.ቁ</th><th>የተመረጠ ሎት</th><th>አስተያየት</th><th>ቀን</th><th>ሁኔታ</th></tr></thead>
+                <tbody id="approved-lots-tbody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="footer no-print">designed by በቀሉ አሊ</div>
+
+<script>
+/* ================= SAMPLE DATA ================= */
+const CATALOG_ITEMS = {
+  "Lot 1": [
+    { num: 1, name: "ዴስክቶፕ ኮምፒውተር", spec: "Core i5, 8GB RAM, 256GB SSD, 21\" Monitor", unit: "Pcs", qty: 10, marketPrice: 55000 },
+    { num: 2, name: "ላፕቶፕ ኮምፒውተር", spec: "Core i7, 16GB RAM, 512GB SSD", unit: "Pcs", qty: 5, marketPrice: 95000 },
+    { num: 3, name: "ፕሪንተር", spec: "Laser Jet, Duplex, Network", unit: "Pcs", qty: 3, marketPrice: 32000 },
+    { num: 4, name: "ዩፒኤስ", spec: "1500VA, Online", unit: "Pcs", qty: 15, marketPrice: 8500 }
+  ],
+  "Lot 2": [
+    { num: 1, name: "የጽሕፈት ወረቀት", spec: "A4, 80gsm", unit: "Ream", qty: 200, marketPrice: 750 },
+    { num: 2, name: "የብዕር ካርትሬጅ", spec: "HP 85A Original", unit: "Pcs", qty: 40, marketPrice: 3200 },
+    { num: 3, name: "ፎቶ ኮፒ ወረቀት", spec: "A4, 100gsm", unit: "Ream", qty: 50, marketPrice: 900 }
+  ]
+};
+
+const SUPPLIERS_MASTER = [
+  { code: 25, name: "አርስናል ትሬዲንግ ኃ/የተ/የግ/ማህበር", lots: { "Lot 1": 1, "Lot 2": 1 } },
+  { code: 26, name: "ብራይት ቴክኖሎጂ ኃ/የተ/የግ/ማህበር", lots: { "Lot 1": 1, "Lot 2": 0 } },
+  { code: 27, name: "ዳይመንድ ኦፊስ ሱፕላይ ኃ/የተ/የግ/ማህበር", lots: { "Lot 1": 1, "Lot 2": 1 } },
+  { code: 28, name: "ኔልሰን ጄኔራል ትሬዲንግ", lots: { "Lot 1": 0, "Lot 2": 1 } },
+  { code: 29, name: "ቬኑስ ኢምፖርት ኤክስፖርት", lots: { "Lot 1": 1, "Lot 2": 0 } }
+];
+
+/* ================= ROLE DEFINITIONS ================= */
+const ROLE_DEFINITIONS = [
+    { role: 'የቴክኒክ ባለሙያ', grantedTabs: ['Home', 'TechnicalSelectedSuppliers'] },
+    { role: 'የዋጋ ገምጋሚ', grantedTabs: ['Home', 'PriceEntry', 'SupportReports'] },
+    { role: 'የገበያ ጥናት ባለሙያ', grantedTabs: ['Home', 'MarketPriceTab'] },
+    { role: 'የጨረታ አጽዳቂ', grantedTabs: ['Home', 'ApproveUpdateTab', 'ApprovedLotsTab'] },
+    { role: 'የሲስተም አስተዳዳሪ', grantedTabs: ['Home','TechnicalSelectedSuppliers','PriceEntry','MarketPriceTab','EvaluateWinner','SupportReports','WinnerLetter','ManageCatalogs','ManageSuppliers','AdminUserResetTab','ApproveUpdateTab','ApprovedLotsTab'] },
+    { role: 'የጨረታ ሥራ አስኪያጅ', grantedTabs: ['Home','MarketPriceTab','EvaluateWinner','SupportReports','WinnerLetter','ManageCatalogs','ManageSuppliers','AdminUserResetTab','ApprovedLotsTab'] }
+];
+
+/* ================= SECURITY ================= */
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('keydown', e => {
+    if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) || (e.ctrlKey && e.key === 'U')) {
+        e.preventDefault();
+        alert("⚠️ ጥበቃ የተደረገበት ሲስተም ስለሆነ ይህ ድርጊት የተከለከለ ነው!");
+        return false;
+    }
+});
+
+/* ================= USERS & AUTH ================= */
+const DEFAULT_USERS = [
+    { username: 'tech', password: 'TechKic@2#19', displayName: 'Technical Officer', role: 'የቴክኒክ ባለሙያ', grantedTabs: ['Home', 'TechnicalSelectedSuppliers'], isFirstLogin: false },
+    { username: 'evaluator', password: 'Evalu@Kic2#19', displayName: 'Price Evaluator', role: 'የዋጋ ገምጋሚ', grantedTabs: ['Home', 'PriceEntry', 'SupportReports'], isFirstLogin: false },
+    { username: 'market', password: 'MarketKic@2#19', displayName: 'Market Officer', role: 'የገበያ ጥናት ባለሙያ', grantedTabs: ['Home', 'MarketPriceTab'], isFirstLogin: false },
+    { username: 'approver', password: 'Kic@Approve2#19', displayName: 'Tender Approver', role: 'የጨረታ አጽዳቂ', grantedTabs: ['Home', 'ApproveUpdateTab', 'ApprovedLotsTab'], isFirstLogin: false },
+    { username: 'admin', password: 'Eshe*#2019@Kic', displayName: 'System Administrator', role: 'የሲስተም አስተዳዳሪ', grantedTabs: ['Home','TechnicalSelectedSuppliers','PriceEntry','MarketPriceTab','EvaluateWinner','SupportReports','WinnerLetter','ManageCatalogs','ManageSuppliers','AdminUserResetTab','ApproveUpdateTab','ApprovedLotsTab'], isFirstLogin: false },
+    { username: 'manager', password: 'Eshe*#2019@Kic', displayName: 'Tender Manager', role: 'የጨረታ ሥራ አስኪያጅ', grantedTabs: ['Home','MarketPriceTab','EvaluateWinner','SupportReports','WinnerLetter','ManageCatalogs','ManageSuppliers','AdminUserResetTab','ApprovedLotsTab'], isFirstLogin: false }
+];
+
+const USERS_LS_KEY = 'kic_tender_users_v6';
+function loadUsers() {
+    const raw = localStorage.getItem(USERS_LS_KEY);
+    if (!raw) { localStorage.setItem(USERS_LS_KEY, JSON.stringify(DEFAULT_USERS)); return DEFAULT_USERS; }
+    try { return JSON.parse(raw); } catch { return DEFAULT_USERS; }
+}
+let USER_ACCOUNTS = loadUsers();
+let currentUser = null;
+let isLoggedIn = false;
+const SESSION_KEY = 'kic_tender_session';
+
+function performLogin() {
+    const uIn = document.getElementById('loginUsername');
+    const pIn = document.getElementById('loginPassword');
+    const err = document.getElementById('loginError');
+    const username = uIn.value.trim();
+    const password = pIn.value;
+
+    const user = USER_ACCOUNTS.find(u => u.username.toLowerCase() === username.toLowerCase() && u.password === password);
+    if (!user) {
+        err.innerText = '❌ የተሳሳተ የተጠቃሚ ስም ወይም የይለፍ ቃል! እባክዎ እንደገና ይሞክሩ።';
+        err.classList.add('show');
+        pIn.value = '';
+        pIn.focus();
+        return;
+    }
+    err.classList.remove('show');
+    currentUser = user;
+    isLoggedIn = true;
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ username: user.username }));
+    document.getElementById('loginOverlay').classList.remove('active');
+
+    if (user.isFirstLogin) {
+        document.getElementById('firstLoginModal').classList.add('active');
+    } else {
+        updateUserInterface();
+        updateTabVisibility();
+        actuallyOpenTab('Home');
+    }
+}
+
+function submitFirstLoginPassword() {
+    const np = document.getElementById('firstLoginNewPass').value;
+    const cp = document.getElementById('firstLoginConfirmPass').value;
+    if (!np || np.length < 6) { alert("እባክዎ ቢያንስ 6 ፊደላት/ቁጥሮች የያዘ አዲስ የይለፍ ቃል ያስገቡ!"); return; }
+    if (np !== cp) { alert("የተያስገቧቸው የይለፍ ቃሎች አይመሳሰሉም!"); return; }
+
+    currentUser.password = np;
+    currentUser.isFirstLogin = false;
+    const idx = USER_ACCOUNTS.findIndex(u => u.username === currentUser.username);
+    if (idx !== -1) USER_ACCOUNTS[idx] = currentUser;
+    localStorage.setItem(USERS_LS_KEY, JSON.stringify(USER_ACCOUNTS));
+
+    document.getElementById('firstLoginModal').classList.remove('active');
+    document.getElementById('firstLoginNewPass').value = '';
+    document.getElementById('firstLoginConfirmPass').value = '';
+    alert("የይለፍ ቃልዎ በተሳካ ሁኔታ ተቀይሯል!");
+    updateUserInterface();
+    updateTabVisibility();
+    actuallyOpenTab('Home');
+}
+
+function performLogout() {
+    if (!confirm('እርግጠኛ ነዎት ከሲስተሙ መውጣት ይፈልጋሉ?')) return;
+    sessionStorage.removeItem(SESSION_KEY);
+    currentUser = null;
+    isLoggedIn = false;
+    document.getElementById('headerUserInfo').classList.remove('visible');
+    document.getElementById('loginOverlay').classList.add('active');
+    document.getElementById('loginUsername').value = '';
+    document.getElementById('loginPassword').value = '';
+}
+
+function restoreSession() {
+    const raw = sessionStorage.getItem(SESSION_KEY);
+    if (!raw) return false;
+    try {
+        const s = JSON.parse(raw);
+        const u = USER_ACCOUNTS.find(x => x.username === s.username);
+        if (!u) return false;
+        currentUser = u;
+        isLoggedIn = true;
+        return true;
+    } catch { return false; }
+}
+
+function updateUserInterface() {
+    if (!currentUser) return;
+    document.getElementById('headerUserName').innerText = currentUser.displayName;
+    document.getElementById('headerUserRole').innerText = currentUser.role;
+    const initial = (currentUser.displayName || currentUser.username || 'A').charAt(0).toUpperCase();
+    document.getElementById('headerUserAvatar').innerText = initial;
+    document.getElementById('headerUserInfo').classList.add('visible');
+}
+
+function updateTabVisibility() {
+    document.querySelectorAll('.tab-btn, .dropdown-content button').forEach(btn => {
+        const a = btn.getAttribute('onclick') || '';
+        const m = a.match(/openTab\(event,\s*'([^']+)'\)/);
+        if (!m) return;
+        const tabName = m[1];
+        btn.style.display = (!currentUser || currentUser.grantedTabs.includes(tabName)) ? '' : 'none';
+    });
+}
+
+/* ================= PASSWORD CHANGE ================= */
+function openPasswordModal() {
+    document.getElementById('oldPasswordInput').value = '';
+    document.getElementById('newPasswordInput').value = '';
+    document.getElementById('confirmPasswordInput').value = '';
+    document.getElementById('passwordModal').classList.add('active');
+}
+
+function saveNewPassword() {
+    const oldP = document.getElementById('oldPasswordInput').value;
+    const np = document.getElementById('newPasswordInput').value;
+    const cp = document.getElementById('confirmPasswordInput').value;
+
+    if (!oldP) { alert("እባክዎ የአሁኑን የይለፍ ቃል ያስገቡ!"); return; }
+    if (oldP !== currentUser.password) { alert("❌ የአሁኑ የይለፍ ቃል ስህተት ነው!"); return; }
+    if (!np || np.length < 6) { alert("እባክዎ ቢያንስ 6 ፊደላት/ቁጥሮች የያዘ አዲስ የይለፍ ቃል ያስገቡ!"); return; }
+    if (np !== cp) { alert("አዲሱ የይለፍ ቃል እና ማረጋገጫው አይመሳሰሉም!"); return; }
+
+    currentUser.password = np;
+    const idx = USER_ACCOUNTS.findIndex(u => u.username === currentUser.username);
+    if (idx !== -1) USER_ACCOUNTS[idx] = currentUser;
+    localStorage.setItem(USERS_LS_KEY, JSON.stringify(USER_ACCOUNTS));
+    alert("✅ የይለፍ ቃልዎ በተሳካ ሁኔታ ተቀይሯል!");
+    document.getElementById('passwordModal').classList.remove('active');
+}
+
+/* ================= ADMIN: PASSWORD RESET + CREATE USER ================= */
+function renderAdminUserResetTable() {
+    const tbody = document.getElementById('admin-user-reset-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    USER_ACCOUNTS.forEach((u, uIdx) => {
+        tbody.innerHTML += `
+            <tr>
+                <td><strong>${u.username}</strong></td>
+                <td>${u.displayName} (${u.role})</td>
+                <td><code>${u.password}</code></td>
+                <td><input type="text" class="price-input" style="width:160px;text-align:left;" id="reset_pass_${uIdx}" placeholder="አዲስ ፓስዎርድ..."></td>
+                <td><button class="btn" style="padding:6px 12px;font-size:12px;" onclick="adminResetUserPassword(${uIdx})">🔄 ሪሴት አድርግ</button></td>
+            </tr>
+        `;
+    });
+
+    const roleSelect = document.getElementById('newUserRoleSelect');
+    if (roleSelect) {
+        roleSelect.innerHTML = '';
+        ROLE_DEFINITIONS.forEach(r => {
+            const opt = document.createElement('option');
+            opt.value = r.role;
+            opt.innerText = r.role;
+            roleSelect.appendChild(opt);
+        });
+    }
+}
+
+function adminResetUserPassword(uIdx) {
+    const passInput = document.getElementById(`reset_pass_${uIdx}`);
+    const newPass = passInput ? passInput.value.trim() : '';
+    if (!newPass || newPass.length < 6) { alert("እባክዎ ቢያንስ 6 ፊደላት/ቁጥሮች የያዘ አዲስ የይለፍ ቃል ያስገቡ!"); return; }
+    USER_ACCOUNTS[uIdx].password = newPass;
+    USER_ACCOUNTS[uIdx].isFirstLogin = true;
+    localStorage.setItem(USERS_LS_KEY, JSON.stringify(USER_ACCOUNTS));
+    passInput.value = '';
+    renderAdminUserResetTable();
+    alert(`የተጠቃሚ '${USER_ACCOUNTS[uIdx].username}' ፓስዎርድ በተሳካ ሁኔታ ሪሴት ተደርጓል!`);
+}
+
+function createNewUser() {
+    const username = document.getElementById('newUsernameInput').value.trim();
+    const displayName = document.getElementById('newDisplayNameInput').value.trim();
+    const role = document.getElementById('newUserRoleSelect').value;
+    const pass = document.getElementById('newUserDefaultPass').value.trim();
+
+    if (!username) { alert("እባክዎ የተጠቃሚ ስም ያስገቡ!"); return; }
+    if (!displayName) { alert("እባክዎ ሙሉ ስም ያስገቡ!"); return; }
+    if (!role) { alert("እባክዎ ሚና ይምረጡ!"); return; }
+    if (!pass || pass.length < 6) { alert("እባክዎ ቢያንስ 6 ፊደላት/ቁጥሮች የያዘ የመጀመሪያ ፓስዎርድ ያስገቡ!"); return; }
+    if (USER_ACCOUNTS.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+        alert(`⚠️ የተጠቃሚ ስም '${username}' አስቀድሞ አለ! እባክዎ ሌላ ይምረጡ።`);
+        return;
+    }
+
+    const roleDef = ROLE_DEFINITIONS.find(r => r.role === role);
+    const newUser = {
+        username,
+        password: pass,
+        displayName,
+        role,
+        grantedTabs: roleDef ? [...roleDef.grantedTabs] : ['Home'],
+        isFirstLogin: true
+    };
+    USER_ACCOUNTS.push(newUser);
+    localStorage.setItem(USERS_LS_KEY, JSON.stringify(USER_ACCOUNTS));
+
+    document.getElementById('newUsernameInput').value = '';
+    document.getElementById('newDisplayNameInput').value = '';
+    document.getElementById('newUserDefaultPass').value = '';
+    renderAdminUserResetTable();
+    alert(`✅ አዲስ ዩዘር '${username}' በተሳካ ሁኔታ ተፈጥሯል! በመጀመሪያ ጊዜ ሲገባ ፓስዎርዱን እንዲቀይር ይጠየቃል።`);
+}
+
+/* ================= STATE & PERSISTENCE ================= */
+const LS_KEYS = { catalog: 'catalogItemsMaster', suppliers: 'suppliersMasterList', selections: 'selectedSuppliersMap', prices: 'enteredPricesMap', comments: 'tenderCommentsMap', approved: 'approvedTendersMap', letterRef: 'letterRefMap', isoCert: 'isoCertImage' };
+
+function loadCatalog() {
+    const raw = localStorage.getItem(LS_KEYS.catalog);
+    if (!raw) return JSON.parse(JSON.stringify(CATALOG_ITEMS));
+    try { return JSON.parse(raw); } catch { return JSON.parse(JSON.stringify(CATALOG_ITEMS)); }
+}
+function loadSuppliers() {
+    const raw = localStorage.getItem(LS_KEYS.suppliers);
+    if (!raw) return JSON.parse(JSON.stringify(SUPPLIERS_MASTER));
+    try { return JSON.parse(raw); } catch { return JSON.parse(JSON.stringify(SUPPLIERS_MASTER)); }
+}
+function loadMap(k) {
+    const raw = localStorage.getItem(k);
+    if (!raw) return {};
+    try { return JSON.parse(raw); } catch { return {}; }
+}
+
+let catalogItemsMaster = loadCatalog();
+let suppliersMasterList = loadSuppliers();
+let selectedSuppliersMap = loadMap(LS_KEYS.selections);
+let enteredPricesMap = loadMap(LS_KEYS.prices);
+let tenderCommentsMap = loadMap(LS_KEYS.comments);
+let approvedTendersMap = loadMap(LS_KEYS.approved);
+let letterRefMap = loadMap(LS_KEYS.letterRef);
+const todayDateStr = new Date().toLocaleDateString('en-GB');
+
+function persistAll() {
+    localStorage.setItem(LS_KEYS.catalog, JSON.stringify(catalogItemsMaster));
+    localStorage.setItem(LS_KEYS.suppliers, JSON.stringify(suppliersMasterList));
+    localStorage.setItem(LS_KEYS.selections, JSON.stringify(selectedSuppliersMap));
+    localStorage.setItem(LS_KEYS.prices, JSON.stringify(enteredPricesMap));
+    localStorage.setItem(LS_KEYS.comments, JSON.stringify(tenderCommentsMap));
+    localStorage.setItem(LS_KEYS.approved, JSON.stringify(approvedTendersMap));
+    localStorage.setItem(LS_KEYS.letterRef, JSON.stringify(letterRefMap));
+}
+
+function getActiveLotNames() { return Object.keys(catalogItemsMaster); }
+
+function syncAllLotDropdowns() {
+    const lots = getActiveLotNames();
+    ['lotSelect','priceLotSelect','marketLotSelect','evalLotSelect','reportLotSelect','letterLotSelect','approveLotSelect'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const cur = el.value;
+        el.innerHTML = '';
+        lots.forEach(l => {
+            const opt = document.createElement('option');
+            opt.value = l;
+            opt.innerText = l;
+            el.appendChild(opt);
+        });
+        if (cur && lots.includes(cur)) el.value = cur;
+    });
+    renderHomeStats();
+}
+
+function openTab(evt, tabName) {
+    if (!isLoggedIn) { document.getElementById('loginOverlay').classList.add('active'); return; }
+    actuallyOpenTab(tabName, evt);
+}
+
+function actuallyOpenTab(tabName, evt) {
+    document.querySelectorAll(".tab-content").forEach(tc => tc.classList.remove("active"));
+    document.querySelectorAll(".tab-btn, .dropdown-content button").forEach(btn => btn.classList.remove("active"));
+    const target = document.getElementById(tabName);
+    if (target) target.classList.add("active");
+    if (evt && evt.currentTarget) {
+        evt.currentTarget.classList.add("active");
+    } else {
+        document.querySelectorAll('.tab-btn, .dropdown-content button').forEach(btn => {
+            const a = btn.getAttribute('onclick') || '';
+            const m = a.match(/openTab\(event,\s*'([^']+)'\)/);
+            if (m && m[1] === tabName) btn.classList.add("active");
+        });
+    }
+    if (tabName === 'Home') renderHomeStats();
+    if (tabName === 'TechnicalSelectedSuppliers') renderSupplierSelectionTable();
+    if (tabName === 'PriceEntry') renderPriceEntryTable();
+    if (tabName === 'MarketPriceTab') renderMarketPriceTable();
+    if (tabName === 'WinnerLetter') populateLetterSuppliersDropdown();
+    if (tabName === 'ManageCatalogs') renderManageCatalogsTable();
+    if (tabName === 'ManageSuppliers') renderManageSuppliersTable();
+    if (tabName === 'AdminUserResetTab') renderAdminUserResetTable();
+    if (tabName === 'ApprovedLotsTab') renderApprovedLotsTable();
+}
+
+function renderHomeStats() {
+    const c = document.getElementById('home-stats-container');
+    if (!c) return;
+    let html = `<div class="card"><h4>ተመዝጋቢ ሰፕላየሮች</h4><p>${suppliersMasterList.length} ሰፕላየሮች</p></div>`;
+    getActiveLotNames().forEach(lot => {
+        const cnt = catalogItemsMaster[lot] ? catalogItemsMaster[lot].length : 0;
+        html += `<div class="card"><h4>${lot}</h4><p>${cnt} እቃዎች</p></div>`;
+    });
+    c.innerHTML = html;
+}
+
+/* ================= SHARED HELPERS ================= */
+function getLowestBid(priceMapForItem, selectedCodes) {
+    let low = null, code = null;
+    (selectedCodes || []).forEach(c => {
+        const v = priceMapForItem ? priceMapForItem[c] : undefined;
+        if (typeof v === 'number' && v > 0 && (low === null || v < low)) { low = v; code = c; }
+    });
+    return { low, code };
+}
+
+function computeWinningItems(lotName, supplierCode) {
+    const items = catalogItemsMaster[lotName] || [];
+    const lotPrices = enteredPricesMap[lotName] || {};
+    const lotSel = selectedSuppliersMap[lotName] || {};
+    const winningItems = [];
+    let grandTotal = 0;
+    items.forEach((item, idx) => {
+        const { low, code } = getLowestBid(lotPrices[idx] || {}, lotSel[idx] || []);
+        if (low !== null && code !== null && code.toString() === supplierCode.toString()) {
+            const qty = parseFloat(item.qty) || 0;
+            const tot = low * qty;
+            grandTotal += tot;
+            winningItems.push({ num: item.num, name: item.name, spec: item.spec, unit: item.unit, qty, unitPrice: low, totalPrice: tot });
+        }
+    });
+    return { winningItems, grandTotal };
+}
+
+function exportTableToExcel(tableId, tabTitle, lotSelectId) {
+    const table = document.getElementById(tableId);
+    if (!table) { alert("የሚወጣ ሰንጠረዥ አልተገኘም!"); return; }
+    const lotSelect = document.getElementById(lotSelectId);
+    const lotName = lotSelect && lotSelect.value ? lotSelect.value : 'Lot';
+    const dateStr = new Date().toISOString().slice(0, 10);
+    const filename = `${lotName}_${tabTitle}_${dateStr}.xlsx`;
+
+    const clone = table.cloneNode(true);
+    clone.querySelectorAll('input, select').forEach(el => {
+        let txt = el.value;
+        if (el.type === 'checkbox') txt = el.checked ? '✓' : '';
+        el.replaceWith(document.createTextNode(txt));
+    });
+
+    const wb = XLSX.utils.table_to_book(clone, { raw: true });
+    XLSX.writeFile(wb, filename);
+}
+
+/* ================= TAB 2: SUPPLIER SELECTION ================= */
+function renderSupplierSelectionTable() {
+    const lotName = document.getElementById('lotSelect').value || getActiveLotNames()[0];
+    if (!lotName) return;
+    const items = catalogItemsMaster[lotName] || [];
+    const eligible = suppliersMasterList.filter(s => s.lots && s.lots[lotName] === 1);
+    const tbody = document.getElementById('supplier-selection-tbody');
+    tbody.innerHTML = '';
+    if (!selectedSuppliersMap[lotName]) selectedSuppliersMap[lotName] = {};
+
+    if (eligible.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:20px;color:#B25900;">
+            ⚠️ በዚህ ሎት የሚሳተፍ አቅራቢ አልተመዘገበም። እባክዎ በ "8. አቅራቢዎች ማስተዳደሪያ" ታብ አቅራቢዎችን ያስመዝግቡ።</td></tr>`;
+        return;
+    }
+
+    items.forEach((item, idx) => {
+        const tr = document.createElement('tr');
+        const cur = selectedSuppliersMap[lotName][idx] || [];
+        let chk = '<div class="supplier-checkbox-group">';
+        eligible.forEach(sup => {
+            const checked = cur.includes(sup.code) ? 'checked' : '';
+            chk += `<label class="checkbox-label"><input type="checkbox" value="${sup.code}" ${checked}
+                onchange="updateItemSupplierSelection('${lotName}', ${idx}, ${sup.code}, this.checked)">
+                ኮድ ${sup.code}</label>`;
+        });
+        chk += '</div>';
+        tr.innerHTML = `<td><strong>${item.num}</strong></td><td><strong>${item.name}</strong></td>
+            <td style="font-size:12px;color:#555;">${item.spec || '-'}</td>
+            <td>${item.unit || '-'}</td><td><strong>${item.qty}</strong></td><td>${chk}</td>`;
+        tbody.appendChild(tr);
+    });
+}
+
+function updateItemSupplierSelection(lotName, idx, code, checked) {
+    if (!selectedSuppliersMap[lotName]) selectedSuppliersMap[lotName] = {};
+    if (!selectedSuppliersMap[lotName][idx]) selectedSuppliersMap[lotName][idx] = [];
+    const list = selectedSuppliersMap[lotName][idx];
+    if (checked) { if (!list.includes(code)) list.push(code); }
+    else selectedSuppliersMap[lotName][idx] = list.filter(c => c !== code);
+}
+
+function saveSelectedSuppliers() {
+    localStorage.setItem(LS_KEYS.selections, JSON.stringify(selectedSuppliersMap));
+    alert("የተመረጡት ሰፕላየሮች በተሳካ ሁኔታ ተመዝግበዋል!");
+}
+
+/* ================= TAB 3: PRICE ENTRY ================= */
+function renderPriceEntryTable() {
+    const lotName = document.getElementById('priceLotSelect').value || getActiveLotNames()[0];
+    if (!lotName) return;
+    const items = catalogItemsMaster[lotName] || [];
+    const lotSel = selectedSuppliersMap[lotName] || {};
+    const codes = new Set();
+    Object.values(lotSel).forEach(a => a.forEach(c => codes.add(c)));
+    const active = suppliersMasterList.filter(s => codes.has(s.code));
+    const thead = document.getElementById('price-entry-thead');
+    const tbody = document.getElementById('price-entry-tbody');
+
+    let h = `<tr><th style="width:50px;">ተ.ቁ</th><th style="width:180px;">የእቃው አይነት</th>
+        <th style="width:220px;">መግለጫ</th><th style="width:70px;">መለኪያ</th><th style="width:60px;">ብዛት</th>`;
+    active.forEach(sup => {
+        h += `<th style="text-align:center;">[ኮድ ${sup.code}]<br><span style="font-size:11px;font-weight:normal;opacity:0.9;">${sup.name}</span></th>`;
+    });
+    h += `</tr>`;
+    thead.innerHTML = h;
+    tbody.innerHTML = '';
+
+    if (active.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:20px;color:#B25900;">⚠️ በዚህ ሎት የተመረጠ አቅራቢ የለም። እባክዎ መጀመሪያ በቴክኒክ ያለፉ አቅራቢዎችን ይምረጡ።</td></tr>`;
+        return;
+    }
+
+    if (!enteredPricesMap[lotName]) enteredPricesMap[lotName] = {};
+    items.forEach((item, idx) => {
+        const tr = document.createElement('tr');
+        const itemSel = lotSel[idx] || [];
+        let r = `<td><strong>${item.num}</strong></td><td><strong>${item.name}</strong></td>
+            <td style="font-size:11px;color:#555;">${item.spec || '-'}</td><td>${item.unit || '-'}</td><td><strong>${item.qty}</strong></td>`;
+        active.forEach(sup => {
+            const isSel = itemSel.includes(sup.code);
+            const stored = enteredPricesMap[lotName][idx] ? enteredPricesMap[lotName][idx][sup.code] : undefined;
+            const val = stored !== undefined ? stored : '';
+            if (isSel) {
+                r += `<td style="text-align:center;"><input type="number" step="0.01" class="price-input" value="${val}"
+                    onchange="updateEnteredPrice('${lotName}', ${idx}, ${sup.code}, this.value)"></td>`;
+            } else {
+                r += `<td style="text-align:center;color:#AAA;">-</td>`;
+            }
+        });
+        tr.innerHTML = r;
+        tbody.appendChild(tr);
+    });
+}
+
+function updateEnteredPrice(lotName, idx, code, val) {
+    if (!enteredPricesMap[lotName]) enteredPricesMap[lotName] = {};
+    if (!enteredPricesMap[lotName][idx]) enteredPricesMap[lotName][idx] = {};
+    const p = parseFloat(val);
+    if (val !== '' && !isNaN(p) && p > 0) enteredPricesMap[lotName][idx][code] = p;
+    else delete enteredPricesMap[lotName][idx][code];
+}
+
+function saveEnteredPrices() {
+    localStorage.setItem(LS_KEYS.prices, JSON.stringify(enteredPricesMap));
+    alert("ዋጋዎች ተቀምጠዋል / ተዘምነዋል!");
+}
+
+/* ================= TAB 11: MARKET PRICE ================= */
+function renderMarketPriceTable() {
+    const lotName = document.getElementById('marketLotSelect').value || getActiveLotNames()[0];
+    if (!lotName) return;
+    const items = catalogItemsMaster[lotName] || [];
+    const tbody = document.getElementById('market-price-tbody');
+    tbody.innerHTML = '';
+    items.forEach((item, idx) => {
+        const tr = document.createElement('tr');
+        const mktVal = (item.marketPrice !== undefined && item.marketPrice !== null && item.marketPrice !== '') ? item.marketPrice : '';
+        tr.innerHTML = `<td><strong>${item.num}</strong></td>
+            <td><strong>${item.name}</strong></td>
+            <td style="font-size:11px;color:#555;">${item.spec || '-'}</td>
+            <td>${item.unit || '-'}</td>
+            <td><strong>${item.qty}</strong></td>
+            <td><input type="number" step="0.01" class="price-input" id="mkt_val_${idx}" value="${mktVal}"></td>`;
+        tbody.appendChild(tr);
+    });
+}
+
+function saveMarketPrices() {
+    const lotName = document.getElementById('marketLotSelect').value;
+    const items = catalogItemsMaster[lotName] || [];
+    items.forEach((item, idx) => {
+        const el = document.getElementById(`mkt_val_${idx}`);
+        if (el) {
+            const v = el.value.trim();
+            item.marketPrice = v !== '' ? parseFloat(v) : null;
+        }
+    });
+    localStorage.setItem(LS_KEYS.catalog, JSON.stringify(catalogItemsMaster));
+    alert("የገበያ ጥናት ዋጋዎች በተሳካ ሁኔታ ተቀምጠዋል / ተዘምነዋል!");
+}
+
+function importMarketPriceExcel() {
+    const lotName = document.getElementById('marketLotSelect').value;
+    const fileInput = document.getElementById('marketExcelFileInput');
+    if (!fileInput.files || fileInput.files.length === 0) { alert("እባክዎ ፋይል ይምረጡ!"); return; }
+    const reader = new FileReader();
+    reader.onload = e => {
+        const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const json = XLSX.utils.sheet_to_json(ws);
+        let items = catalogItemsMaster[lotName] || [];
+        let count = 0;
+        json.forEach(row => {
+            const num = row['ተ.ቁ'] || row['num'];
+            const price = parseFloat(row['የገበያ ጥናት ዋጋ'] || row['marketPrice']);
+            if (!isNaN(price)) {
+                const m = items.find(i => i.num.toString() === String(num));
+                if (m) { m.marketPrice = price; count++; }
+            }
+        });
+        catalogItemsMaster[lotName] = items;
+        localStorage.setItem(LS_KEYS.catalog, JSON.stringify(catalogItemsMaster));
+        renderMarketPriceTable();
+        alert(`${count} የገበያ ጥናት ዋጋዎች በኤክሴል ተጭነዋል!`);
+    };
+    reader.readAsArrayBuffer(fileInput.files[0]);
+}
+
+/* ================= TAB 4: EVALUATE WINNER ================= */
+function renderWinnerEvaluationTable() {
+    const lotName = document.getElementById('evalLotSelect').value || getActiveLotNames()[0];
+    if (!lotName) return;
+    const items = catalogItemsMaster[lotName] || [];
+    const lotPrices = enteredPricesMap[lotName] || {};
+    const lotSel = selectedSuppliersMap[lotName] || {};
+    const tbody = document.getElementById('winner-tbody');
+    tbody.innerHTML = '';
+    items.forEach((item, idx) => {
+        const tr = document.createElement('tr');
+        const ip = lotPrices[idx] || {};
+        const sel = lotSel[idx] || [];
+        const qty = parseFloat(item.qty) || 0;
+        const mkt = item.marketPrice || 0;
+        const { low, code: wcode } = getLowestBid(ip, sel);
+        let wname = '';
+        if (wcode !== null) { const s = suppliersMasterList.find(x => x.code === wcode); wname = s ? s.name : ''; }
+        const total = (low !== null && qty > 0) ? low * qty : null;
+        const mktFmt = mkt > 0 ? mkt.toLocaleString('en-US', { minimumFractionDigits: 2 }) : '-';
+        let badge = '<span class="badge-nobid">ዋጋ አልገባም</span>';
+        if (low !== null) {
+            badge = (mkt > 0 && low > mkt)
+                ? '<span class="badge-high">የተጋነነ ዋጋ</span>'
+                : '<span class="badge-win">በቴክኒክ እና በዋጋ ያሸነፈ</span>';
+        }
+        tr.innerHTML = `<td><strong>${item.num}</strong></td><td><strong>${item.name}</strong></td>
+            <td style="font-size:11px;color:#555;">${item.spec || '-'}</td><td>${item.unit || '-'}</td>
+            <td>${item.qty}</td><td style="font-weight:bold;color:var(--primary-navy);">${mktFmt}</td>
+            <td style="font-weight:bold;color:var(--win-text);">${low !== null ? low.toLocaleString('en-US', { minimumFractionDigits: 2 }) : '-'}</td>
+            <td style="font-weight:bold;color:var(--primary-navy);">${total !== null ? total.toLocaleString('en-US', { minimumFractionDigits: 2 }) : '-'}</td>
+            <td><strong>${wname || '-'}</strong></td><td>${wcode !== null ? wcode : '-'}</td><td>${badge}</td>`;
+        tbody.appendChild(tr);
+    });
+}
+
+/* ================= TAB 5: SUMMARY REPORTS ================= */
+function buildSupplierStatusRow(ip, selectedSupps, eligible, mkt, low) {
+    return eligible.map(sup => {
+        const isSel = selectedSupps.includes(sup.code);
+        const v = ip[sup.code];
+        if (!isSel) return `<td style="text-align:center;"><span class="badge-fail">በቴክኒክ የወደቀ</span></td>`;
+        if (v === undefined || v === 0 || isNaN(v)) return `<td style="text-align:center;"><span class="badge-nobid">ዋጋ አልተገባም</span></td>`;
+        if (v === low) {
+            return (mkt > 0 && v > mkt)
+                ? `<td style="text-align:center;"><span class="badge-high">የተጋነነ ዋጋ (${v.toFixed(2)})</span></td>`
+                : `<td style="text-align:center;"><span class="badge-win">በቴክኒክ እና በዋጋ ያሸነፈ (${v.toFixed(2)})</span></td>`;
+        }
+        return `<td style="text-align:center;"><span class="badge-fail">በቴክኒክ አልፎ በዋጋ የወደቀ (${v.toFixed(2)})</span></td>`;
+    }).join('');
+}
+
+function renderSupportReportTable() {
+    const lotName = document.getElementById('reportLotSelect').value || getActiveLotNames()[0];
+    if (!lotName) return;
+    const items = catalogItemsMaster[lotName] || [];
+    const lotPrices = enteredPricesMap[lotName] || {};
+    const lotSel = selectedSuppliersMap[lotName] || {};
+    const thead = document.getElementById('report-thead');
+    const tbody = document.getElementById('report-tbody');
+    const eligible = suppliersMasterList.filter(s => s.lots && s.lots[lotName] === 1);
+    let h = `<tr><th>ተ.ቁ</th><th>የእቃው አይነት</th><th>መግለጫ</th><th>መለኪያ</th><th>ብዛት</th>
+        <th>የገበያ ጥናት ዋጋ</th><th>አነስተኛ የነጠላ ዋጋ</th><th>ቶታል አነስተኛ ዋጋ</th>`;
+    eligible.forEach(sup => { h += `<th style="text-align:center;">[ኮድ ${sup.code}] ${sup.name}</th>`; });
+    h += `</tr>`;
+    thead.innerHTML = h;
+    tbody.innerHTML = '';
+    items.forEach((item, idx) => {
+        const tr = document.createElement('tr');
+        const ip = lotPrices[idx] || {};
+        const sel = lotSel[idx] || [];
+        const mkt = item.marketPrice || 0;
+        const qty = parseFloat(item.qty) || 0;
+        const { low } = getLowestBid(ip, sel);
+        const total = (low !== null && qty > 0) ? low * qty : null;
+        const mktFmt = mkt > 0 ? mkt.toLocaleString('en-US', { minimumFractionDigits: 2 }) : '-';
+        let r = `<td><strong>${item.num}</strong></td><td><strong>${item.name}</strong></td>
+            <td style="font-size:11px;color:#555;">${item.spec || '-'}</td><td>${item.unit || '-'}</td>
+            <td><strong>${item.qty}</strong></td>
+            <td style="font-weight:bold;color:var(--primary-navy);">${mktFmt}</td>
+            <td style="font-weight:bold;color:var(--win-text);">${low !== null ? low.toLocaleString('en-US', { minimumFractionDigits: 2 }) : '-'}</td>
+            <td style="font-weight:bold;color:var(--primary-navy);">${total !== null ? total.toLocaleString('en-US', { minimumFractionDigits: 2 }) : '-'}</td>`;
+        r += buildSupplierStatusRow(ip, sel, eligible, mkt, low);
+        tr.innerHTML = r;
+        tbody.appendChild(tr);
+    });
+}
+
+/* ================= TAB 6: WINNER LETTER ================= */
+function populateLetterSuppliersDropdown() {
+    const lotName = document.getElementById('letterLotSelect').value || getActiveLotNames()[0];
+    const items = catalogItemsMaster[lotName] || [];
+    const lotPrices = enteredPricesMap[lotName] || {};
+    const lotSel = selectedSuppliersMap[lotName] || {};
+
+    const winningCodes = new Set();
+    items.forEach((item, idx) => {
+        const { code } = getLowestBid(lotPrices[idx] || {}, lotSel[idx] || []);
+        if (code !== null) winningCodes.add(code.toString());
+    });
+
+    const dd = document.getElementById('letterSupplierSelect');
+    dd.innerHTML = '';
+    suppliersMasterList.forEach(s => {
+        const isWinner = winningCodes.has(s.code.toString());
+        const opt = document.createElement('option');
+        opt.value = s.code;
+        opt.innerText = isWinner ? `🏆 [አሸናፊ] ኮድ ${s.code} - ${s.name}` : `ኮድ ${s.code} - ${s.name}`;
+        dd.appendChild(opt);
+    });
+    document.getElementById('letter-date-str').innerText = todayDateStr;
+    filterLetterSuppliers();
+    renderWinnerLetter();
+}
+
+function filterLetterSuppliers() {
+    const q = (document.getElementById('letterSupplierSearch').value || '').toLowerCase().trim();
+    const dd = document.getElementById('letterSupplierSelect');
+    if (!dd) return;
+    [...dd.options].forEach(opt => {
+        opt.style.display = opt.innerText.toLowerCase().includes(q) ? '' : 'none';
+    });
+    const firstVisible = [...dd.options].find(o => o.style.display !== 'none');
+    if (firstVisible && dd.selectedOptions[0] && dd.selectedOptions[0].style.display === 'none') {
+        dd.value = firstVisible.value;
+        renderWinnerLetter();
+    }
+}
+
+function renderWinnerLetter() {
+    const lotName = document.getElementById('letterLotSelect').value;
+    const supCode = document.getElementById('letterSupplierSelect').value;
+    const supObj = suppliersMasterList.find(s => s.code.toString() === supCode.toString());
+    const supName = supObj ? supObj.name : '';
+    document.getElementById('letter-supplier-name-display').innerText = supName || '________________________';
+
+    const { winningItems, grandTotal } = computeWinningItems(lotName, supCode);
+    const bodyDiv = document.getElementById('letter-body-content');
+    const tableWrap = document.getElementById('letter-table-wrapper');
+
+    if (winningItems.length > 0) {
+        bodyDiv.innerHTML = `ከላይ በርእሱ ለመጥቀስ እንደተሞከረው የኮልፌ ኢንዱስትሪያል ኮሌጅ በጨረታ ቁጥር ኮ/ኢ/ኮ 01/2018 በቀን 2/13/2017 ዓ.ም በታተመው ግልፅ ጨረታ ማስታወቂያ ከተወዳደሩባቸው ሎቶች በ <strong>${lotName}</strong> ያሸነፉ በመሆኑ የተላከሎትን የእቃ ዝርዝር ጠቅላላ ዋጋ 10% /አስር ፐርሰንት/ በባንክ የተመሰከረ ሲፒኦ በማስያዝ ውል ተዋውለው ጥራቱን የተጠበቀ እቃ ለንብረት ግምጃ ቤት በአፋጣኝ እንዲያቀርቡና በቴክኒክ ቡድን ባለሙያ ታይቶ ገቢ እንዲያደርጉ እናሳውቃለን፡፡`;
+
+        let t = `<table class="letter-table"><thead><tr><th>ተ.ቁ</th><th>እቃ</th><th>መግለጫ</th><th>መለኪያ</th><th>ብዛት</th><th>ነጠላ ዋጋ</th><th>ጠቅላላ ዋጋ</th></tr></thead><tbody>`;
+        winningItems.forEach(w => {
+            t += `<tr><td>${w.num}</td><td>${w.name}</td><td>${w.spec}</td><td>${w.unit}</td><td>${w.qty}</td><td>${w.unitPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td><td>${w.totalPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td></tr>`;
+        });
+        t += `<tr style="background:#E7EEF6; font-weight:bold;"><td colspan="6" style="text-align:right;">ጠቅላላ ድምር (Grand Total):</td><td>${grandTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td></tr>`;
+        t += `</tbody></table>`;
+        tableWrap.innerHTML = t;
+    } else {
+        bodyDiv.innerHTML = `ከላይ በርእሱ ለመጥቀስ እንደተሞከረው የኮልፌ ኢንዱስትሪያል ኮሌጅ በጨረታ ቁጥር ኮ/ኢ/ኮ 01/2018 በቀን 2/13/2017 ዓ.ም በታተመው ግልፅ ጨረታ ማስታወቂያ በ${lotName} ተወዳድረው የነበር ቢሆንም በዋጋና በጥራት ተበልጠው ውድቅ ሆነዋል፡፡`;
+        tableWrap.innerHTML = '';
+    }
+}
+
+function printLetter() { window.print(); }
+
+/* ================= ISO CERT UPLOAD ================= */
+function uploadIsoCert(input) {
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+    if (!file.type.startsWith('image/')) { alert("እባክዎ የምስል ፋይል ይምረጡ (JPG/PNG)።"); return; }
+    const reader = new FileReader();
+    reader.onload = e => {
+        const dataUrl = e.target.result;
+        try {
+            localStorage.setItem(LS_KEYS.isoCert, dataUrl);
+            applyIsoCert(dataUrl);
+            alert("✅ ISO ሰርቲፊኬት ምስል በተሳካ ሁኔታ ተቀይሯል!");
+        } catch (err) {
+            alert("⚠️ ምስሉ በጣም ትልቅ ነው። እባክዎ ትንሽ ፋይል ይጠቀሙ።");
+        }
+    };
+    reader.readAsDataURL(file);
+}
+
+function applyIsoCert(dataUrl) {
+    const img = document.getElementById('iso-cert-img');
+    const fb = document.getElementById('iso-cert-fallback');
+    if (img) { img.src = dataUrl; img.style.display = ''; }
+    if (fb) { fb.style.display = 'none'; }
+}
+
+function loadIsoCertFromStorage() {
+    const stored = localStorage.getItem(LS_KEYS.isoCert);
+    if (stored) applyIsoCert(stored);
+}
+
+/* ================= WORD EXPORT WITH FULL HEADER ================= */
+async function exportLetterToWord() {
+    if (!window.docx) { alert("የ Word ላይብረሪ አልተጫነም። እባክዎ ኢንተርኔት ግንኙነትዎን ያረጋግጡ።"); return; }
+    const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType, ImageRun, BorderStyle, VerticalAlign } = window.docx;
+
+    const lotName = document.getElementById('letterLotSelect').value;
+    const supCode = document.getElementById('letterSupplierSelect').value;
+    const supName = document.getElementById('letter-supplier-name-display').innerText;
+    const bodyText = document.getElementById('letter-body-content').innerText;
+    const { winningItems, grandTotal } = computeWinningItems(lotName, supCode);
+
+    // Helper: load image as Uint8Array
+    async function loadImageBytes(url) {
+        try {
+            const resp = await fetch(url);
+            if (!resp.ok) return null;
+            const buf = await resp.arrayBuffer();
+            return new Uint8Array(buf);
+        } catch (e) { return null; }
+    }
+
+    function dataUrlToBytes(dataUrl) {
+        try {
+            const base64 = dataUrl.split(',')[1];
+            const binary = atob(base64);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+            return bytes;
+        } catch(e) { return null; }
+    }
+
+    function detectImageType(bytes) {
+        if (!bytes || bytes.length < 4) return 'png';
+        if (bytes[0] === 0xFF && bytes[1] === 0xD8) return 'jpg';
+        if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47) return 'png';
+        if (bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46) return 'gif';
+        if (bytes[0] === 0x42 && bytes[1] === 0x4D) return 'bmp';
+        return 'png';
+    }
+
+    // Load logo
+    const logoBytes = await loadImageBytes('logo.jpg');
+    // Load ISO cert
+    let isoBytes = null;
+    const isoStored = localStorage.getItem(LS_KEYS.isoCert);
+    if (isoStored && isoStored.startsWith('data:image')) {
+        isoBytes = dataUrlToBytes(isoStored);
+    }
+    if (!isoBytes) {
+        isoBytes = await loadImageBytes('iso21001.jpg');
+    }
+
+    const navyBorder = { style: BorderStyle.SINGLE, size: 12, color: '1F4E78' };
+    const allBorders = { top: navyBorder, bottom: navyBorder, left: navyBorder, right: navyBorder };
+
+    // Header cells
+    const headerRowCells = [];
+
+    // Cell 1: Logo
+    const logoParagraphs = [];
+    if (logoBytes) {
+        try {
+            logoParagraphs.push(new Paragraph({
+                alignment: AlignmentType.CENTER,
+                children: [new ImageRun({ data: logoBytes, transformation: { width: 60, height: 60 }, type: detectImageType(logoBytes) })]
+            }));
+        } catch(e) { /* skip logo */ }
+    }
+    logoParagraphs.push(new Paragraph({
+        alignment: AlignmentType.CENTER,
+        children: [new TextRun({ text: 'Effective date: 27-03-2025', bold: true, size: 14, color: '1F4E78' })]
+    }));
+    headerRowCells.push(new TableCell({
+        children: logoParagraphs,
+        width: { size: 18, type: WidthType.PERCENTAGE },
+        verticalAlign: VerticalAlign.CENTER,
+        borders: allBorders
+    }));
+
+    // Cell 2: Title
+    headerRowCells.push(new TableCell({
+        children: [
+            new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'ኮልፌ ኢንዱስትሪያል ኮሌጅ', bold: true, size: 24, color: '1F4E78' })] }),
+            new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'KOLFE INDUSTRIAL COLLEGE', bold: true, size: 20, color: '1F4E78' })] }),
+            new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Title: የውስጥ ደብዳቤ / Internal Letter', bold: true, size: 16, color: '1F4E78' })] })
+        ],
+        width: { size: 44, type: WidthType.PERCENTAGE },
+        verticalAlign: VerticalAlign.CENTER,
+        borders: allBorders
+    }));
+
+    // Cell 3: Document No
+    headerRowCells.push(new TableCell({
+        children: [
+            new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Document No.', bold: true, size: 14, color: '1F4E78' })] }),
+            new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'OF/KIC/DN/001', bold: true, size: 16, color: '1F4E78' })] }),
+            new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Issue No. 1  |  Page No. 1', size: 12, color: '1F4E78' })] })
+        ],
+        width: { size: 20, type: WidthType.PERCENTAGE },
+        verticalAlign: VerticalAlign.CENTER,
+        borders: allBorders
+    }));
+
+    // Cell 4: ISO cert
+    const isoParagraphs = [];
+    if (isoBytes) {
+        try {
+            isoParagraphs.push(new Paragraph({
+                alignment: AlignmentType.CENTER,
+                children: [new ImageRun({ data: isoBytes, transformation: { width: 60, height: 60 }, type: detectImageType(isoBytes) })]
+            }));
+        } catch(e) { /* skip iso */ }
+    }
+    if (isoParagraphs.length === 0) {
+        isoParagraphs.push(new Paragraph({
+            alignment: AlignmentType.CENTER,
+            children: [new TextRun({ text: 'ISO 21001', bold: true, size: 16, color: '1F4E78' })]
+        }));
+        isoParagraphs.push(new Paragraph({
+            alignment: AlignmentType.CENTER,
+            children: [new TextRun({ text: '✓ ECAE', bold: true, size: 20, color: 'C62828' })]
+        }));
+        isoParagraphs.push(new Paragraph({
+            alignment: AlignmentType.CENTER,
+            children: [new TextRun({ text: 'CERTIFIED', bold: true, size: 12, color: '1F4E78' })]
+        }));
+    }
+    headerRowCells.push(new TableCell({
+        children: isoParagraphs,
+        width: { size: 18, type: WidthType.PERCENTAGE },
+        verticalAlign: VerticalAlign.CENTER,
+        borders: allBorders
+    }));
+
+    const headerTable = new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        rows: [new TableRow({ children: headerRowCells })]
+    });
+
+    // Body items table
+    const cell = (text, opts = {}) => new TableCell({
+        children: [new Paragraph({ alignment: opts.align || AlignmentType.LEFT, children: [new TextRun({ text: String(text), bold: !!opts.bold, size: 18 })] })],
+        width: opts.width ? { size: opts.width, type: WidthType.PERCENTAGE } : undefined
+    });
+
+    const bodyRows = [
+        new TableRow({ tableHeader: true, children: [
+            cell('ተ.ቁ', { bold: true, align: AlignmentType.CENTER, width: 7 }),
+            cell('እቃ', { bold: true, align: AlignmentType.CENTER, width: 20 }),
+            cell('መግለጫ', { bold: true, align: AlignmentType.CENTER, width: 25 }),
+            cell('መለኪያ', { bold: true, align: AlignmentType.CENTER, width: 10 }),
+            cell('ብዛት', { bold: true, align: AlignmentType.CENTER, width: 8 }),
+            cell('ነጠላ ዋጋ', { bold: true, align: AlignmentType.CENTER, width: 15 }),
+            cell('ጠቅላላ ዋጋ', { bold: true, align: AlignmentType.CENTER, width: 15 })
+        ]}),
+        ...winningItems.map(w => new TableRow({ children: [
+            cell(w.num, { align: AlignmentType.CENTER }),
+            cell(w.name),
+            cell(w.spec || '-'),
+            cell(w.unit || '-'),
+            cell(w.qty, { align: AlignmentType.CENTER }),
+            cell(w.unitPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })),
+            cell(w.totalPrice.toLocaleString('en-US', { minimumFractionDigits: 2 }))
+        ]})),
+        new TableRow({ children: [
+            cell('ጠቅላላ ድምር (Grand Total)', { bold: true, align: AlignmentType.RIGHT }),
+            cell('', {}), cell('', {}), cell('', {}), cell('', {}), cell('', {}),
+            cell(grandTotal.toLocaleString('en-US', { minimumFractionDigits: 2 }), { bold: true })
+        ]})
+    ];
+
+    const doc = new Document({
+        sections: [{
+            properties: { page: { margin: { top: 720, bottom: 720, left: 900, right: 900 } } },
+            children: [
+                headerTable,
+                new Paragraph({ children: [new TextRun({ text: '' })] }),
+                new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: 'ቁጥር አ/ል/-------- 2019 ዓ.ም', bold: true, size: 20 })] }),
+                new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: `ቀን ${todayDateStr} /2019 ዓ.ም`, bold: true, size: 20 })] }),
+                new Paragraph({ children: [new TextRun({ text: '' })] }),
+                new Paragraph({ children: [new TextRun({ text: `ለ ${supName}`, bold: true, size: 22 })] }),
+                new Paragraph({ children: [new TextRun({ text: '' })] }),
+                new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'ጉዳዩ፡- የጨረታ ውጤት ስለማሳወቅ ይሆናል', bold: true, underline: { type: 'single' }, size: 22 })] }),
+                new Paragraph({ children: [new TextRun({ text: '' })] }),
+                new Paragraph({ alignment: AlignmentType.JUSTIFIED, children: [new TextRun({ text: bodyText, size: 20 })] }),
+                new Paragraph({ children: [new TextRun({ text: '' })] }),
+                new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: bodyRows }),
+                new Paragraph({ children: [new TextRun({ text: '' })] }),
+                new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: 'ከሰላምታ ጋር፣', bold: true, size: 20 })] }),
+                new Paragraph({ children: [new TextRun({ text: '' })] }),
+                new Paragraph({ children: [new TextRun({ text: 'ግልባጭ', bold: true, underline: { type: 'single' }, size: 18 })] }),
+                new Paragraph({ children: [new TextRun({ text: '➢ ለዋና ዲን ፅ/ቤት', size: 16 })] }),
+                new Paragraph({ children: [new TextRun({ text: '➢ ለፋይናንስ ዳይሮክተሬት', size: 16 })] }),
+                new Paragraph({ children: [new TextRun({ text: '➢ ለመንግስት ግዢ ቡድን', size: 16 })] }),
+                new Paragraph({ children: [new TextRun({ text: '➢ ለንብረት አስ/ጠ/አገ/ዳይሬክተሬት', size: 16 })] })
+            ]
+        }]
+    });
+
+    const blob = await Packer.toBlob(doc);
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${lotName}_Winner_Letter_${supName.replace(/[\/\\:*?"<>|]/g, '_')}.docx`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+}
+
+/* ================= ADD SUPPLIER MODAL ================= */
+function openAddSupplierModal() {
+    document.getElementById('newSupCode').value = '';
+    document.getElementById('newSupName').value = '';
+    const container = document.getElementById('newSupLotsContainer');
+    container.innerHTML = '';
+    const lots = getActiveLotNames();
+    if (lots.length === 0) {
+        container.innerHTML = '<span style="color:#B25900;">⚠️ ምንም ሎት የለም። እባክዎ መጀመሪያ ሎት ያክሉ።</span>';
+    } else {
+        lots.forEach(lot => {
+            const label = document.createElement('label');
+            label.className = 'checkbox-label';
+            label.style.padding = '4px 8px';
+            label.style.background = 'white';
+            label.style.border = '1px solid #DDD';
+            label.style.borderRadius = '4px';
+            label.innerHTML = `<input type="checkbox" value="${lot}" style="accent-color: var(--accent-blue);"> <strong>${lot}</strong>`;
+            container.appendChild(label);
+        });
+    }
+    document.getElementById('addSupplierModal').classList.add('active');
+}
+
+function addNewSupplier() {
+    const code = parseInt(document.getElementById('newSupCode').value);
+    const name = document.getElementById('newSupName').value.trim();
+    if (isNaN(code)) { alert("⚠️ እባክዎ ትክክለኛ የቁጥር ኮድ ያስገቡ!"); return; }
+    if (!name) { alert("⚠️ እባክዎ የአቅራቢውን ስም ያስገቡ!"); return; }
+    if (suppliersMasterList.some(s => s.code === code)) {
+        alert(`⚠️ ኮድ ${code} አስቀድሞ ለሌላ አቅራቢ ተሰጥቷል! እባክዎ ሌላ ኮድ ይምረጡ።`);
+        return;
+    }
+    const lots = {};
+    getActiveLotNames().forEach(lot => { lots[lot] = 0; });
+    document.querySelectorAll('#newSupLotsContainer input[type="checkbox"]').forEach(cb => {
+        if (cb.checked) lots[cb.value] = 1;
+    });
+    if (!Object.values(lots).some(v => v === 1)) {
+        if (!confirm("⚠️ ይህ አቅራቢ በምንም ሎት ውስጥ አልተመረጠም። ቢሆንም ይጨመር?")) return;
+    }
+    suppliersMasterList.push({ code, name, lots });
+    persistAll();
+    renderManageSuppliersTable();
+    renderHomeStats();
+    document.getElementById('addSupplierModal').classList.remove('active');
+    alert(`✅ አዲስ አቅራቢ "${name}" (ኮድ ${code}) በተሳካ ሁኔታ ተጨምሯል!`);
+}
+
+/* ================= TAB 7: CATALOGS ================= */
+function renderManageCatalogsTable() {
+    const tbody = document.getElementById('catalogs-list-tbody');
+    tbody.innerHTML = '';
+    getActiveLotNames().forEach(lot => {
+        const count = catalogItemsMaster[lot] ? catalogItemsMaster[lot].length : 0;
+        tbody.innerHTML += `<tr><td><strong>${lot}</strong></td><td>${count} እቃዎች</td>
+            <td><button class="btn-export" onclick="downloadLotExcel('${lot}')">📥 ዳውንሎድ</button></td>
+            <td><button class="btn-danger" onclick="deleteCatalogLot('${lot}')">🗑️ ሰርዝ</button></td></tr>`;
+    });
+}
+
+function downloadLotExcel(lotName) {
+    const items = catalogItemsMaster[lotName] || [];
+    const mapped = items.map(i => ({
+        'ተ.ቁ': i.num, 'የእቃው አይነት': i.name, 'መግለጫ': i.spec || '', 'መለኪያ': i.unit || '',
+        'ብዛት': i.qty, 'የገበያ ጥናት ዋጋ': i.marketPrice || ''
+    }));
+    const ws = XLSX.utils.json_to_sheet(mapped);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, lotName.substring(0, 31));
+    XLSX.writeFile(wb, `${lotName}_catalogs_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+
+function downloadSampleTemplate(type) {
+    let data = [];
+    if (type === 'catalog') data = [{ 'ተ.ቁ': 1, 'የእቃው አይነት': 'Desktop', 'መግለጫ': 'Core i5', 'መለኪያ': 'Pcs', 'ብዛት': 10, 'የገበያ ጥናት ዋጋ': 50000 }];
+    else if (type === 'suppliers') data = [{ 'ኮድ': 25, 'ስም': 'Arsnal Trading', 'Lot 1': 1, 'Lot 2': 0 }];
+    else if (type === 'market') data = [{ 'ተ.ቁ': 1, 'የገበያ ጥናት ዋጋ': 10000 }];
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Template');
+    XLSX.writeFile(wb, `${type}_sample_template.xlsx`);
+}
+
+function importCatalogFromExcel() {
+    const newLot = document.getElementById('newLotNameInput').value.trim();
+    const fileInput = document.getElementById('excelCatalogFileInput');
+    if (!newLot || !fileInput.files.length) { alert("እባክዎ የሎት ስም እና ፋይል ያስገቡ!"); return; }
+    if (catalogItemsMaster[newLot] && !confirm(`ሎት '${newLot}' አስቀድሞ አለ። በአዲሱ መረጃ ይተካ?`)) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+        const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+        const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+        catalogItemsMaster[newLot] = json.map((r, i) => ({
+            num: r['ተ.ቁ'] || (i + 1),
+            name: r['የእቃው አይነት'] || r['name'] || '',
+            spec: r['መግለጫ'] || r['spec'] || '',
+            unit: r['መለኪያ'] || 'pcs',
+            qty: r['ብዛት'] || 1,
+            marketPrice: r['የገበያ ጥናት ዋጋ'] || 0
+        }));
+        persistAll();
+        syncAllLotDropdowns();
+        renderManageCatalogsTable();
+        alert("ሎት ተጭኗል!");
+    };
+    reader.readAsArrayBuffer(fileInput.files[0]);
+}
+
+function deleteCatalogLot(lot) {
+    const cnt = catalogItemsMaster[lot] ? catalogItemsMaster[lot].length : 0;
+    if (!confirm(`⚠️ እርግጠኛ ነዎት?\n\nሎት "${lot}" (${cnt} እቃዎች) ሊሰረዝ ነው።\n\nይህ ድርጊት መመለስ አይቻልም!`)) return;
+    delete catalogItemsMaster[lot];
+    persistAll();
+    syncAllLotDropdowns();
+    renderManageCatalogsTable();
+    alert(`✅ ሎት "${lot}" በተሳካ ሁኔታ ተሰርዟል!`);
+}
+
+/* ================= TAB 8: SUPPLIERS ================= */
+function importSuppliersExcel() {
+    const fileInput = document.getElementById('suppliersExcelInput');
+    if (!fileInput.files.length) { alert("እባክዎ ፋይል ይምረጡ!"); return; }
+    const reader = new FileReader();
+    reader.onload = e => {
+        const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+        const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+
+        const codesSet = new Set();
+        for (let r of json) {
+            const c = parseInt(r['ኮድ'] || r['code']);
+            if (isNaN(c)) { alert("⚠️ ስህተት፡ ኮድ የሌለው ረድፍ አለ!"); return; }
+            if (codesSet.has(c)) {
+                alert(`⚠️ ስህተት፡ በኤክሴል ፋይሉ ውስጥ ኮድ [${c}] ተደግሞ ተገኝቷል!`);
+                return;
+            }
+            codesSet.add(c);
+        }
+
+        suppliersMasterList = json.map(r => {
+            const lotsObj = {};
+            Object.keys(r).forEach(k => { if (k.startsWith('Lot')) lotsObj[k] = parseInt(r[k]) === 1 ? 1 : 0; });
+            return { code: parseInt(r['ኮድ'] || r['code']), name: r['ስም'] || r['name'] || '', lots: lotsObj };
+        });
+        persistAll();
+        renderManageSuppliersTable();
+        renderHomeStats();
+        alert("አቅራቢዎች በ 1 እና 0 ኤክሴል ተጭነዋል!");
+    };
+    reader.readAsArrayBuffer(fileInput.files[0]);
+}
+
+function renderManageSuppliersTable() {
+    const lots = getActiveLotNames();
+    const thead = document.getElementById('manage-suppliers-thead');
+    const tbody = document.getElementById('manage-suppliers-tbody');
+    let h = `<tr><th style="width:90px;">ኮድ</th><th>ስም</th>`;
+    lots.forEach(l => h += `<th>${l}</th>`);
+    h += `<th style="width:110px;">ድርጊት</th></tr>`;
+    thead.innerHTML = h;
+    tbody.innerHTML = '';
+    suppliersMasterList.forEach((s, sIdx) => {
+        let r = `<td><input type="number" class="price-input" style="width:75px;text-align:center;font-weight:bold;" id="sup_code_${sIdx}" value="${s.code}"></td>
+                 <td><input type="text" class="price-input" style="width:220px;text-align:left;" id="sup_name_${sIdx}" value="${s.name}"></td>`;
+        lots.forEach((l, lIdx) => {
+            const val = (s.lots && s.lots[l] === 1) ? 1 : 0;
+            r += `<td><input type="number" min="0" max="1" style="width:50px;text-align:center;" id="sup_lot_${sIdx}_${lIdx}" value="${val}"></td>`;
+        });
+        r += `<td><button class="btn-danger" style="padding:5px 10px;font-size:12px;" onclick="deleteSupplier(${sIdx})">🗑️ ሰርዝ</button></td>`;
+        tbody.innerHTML += `<tr>${r}</tr>`;
+    });
+}
+
+function deleteSupplier(sIdx) {
+    const s = suppliersMasterList[sIdx];
+    if (!s) return;
+    if (!confirm(`⚠️ እርግጠኛ ነዎት?\n\nአቅራቢ "${s.name}" (ኮድ ${s.code}) ሊሰረዝ ነው።\n\nይህ ድርጊት መመለስ አይቻልም!`)) return;
+    suppliersMasterList.splice(sIdx, 1);
+    persistAll();
+    renderManageSuppliersTable();
+    renderHomeStats();
+    alert("✅ አቅራቢ በተሳካ ሁኔታ ተሰርዟል!");
+}
+
+function saveSuppliersMasterChanges() {
+    const lots = getActiveLotNames();
+    const newCodesList = [];
+
+    for (let sIdx = 0; sIdx < suppliersMasterList.length; sIdx++) {
+        const codeEl = document.getElementById(`sup_code_${sIdx}`);
+        if (!codeEl) continue;
+        const enteredCode = parseInt(codeEl.value);
+        if (isNaN(enteredCode)) { alert("⚠️ ስህተት፡ እባክዎ ትክክለኛ የቁጥር ኮድ ያስገቡ!"); return; }
+        if (newCodesList.includes(enteredCode)) {
+            alert(`⚠️ ስህተት፡ ኮድ [${enteredCode}] ለሁለት ወይም ከዚያ በላይ አቅራቢዎች ተደግሞ ተሰጥቷል! ተመሳሳይ ኮድ መስጠት የተከለከለ ነው።`);
+            return;
+        }
+        newCodesList.push(enteredCode);
+    }
+
+    const codeMap = {};
+    suppliersMasterList.forEach((s, sIdx) => {
+        const codeEl = document.getElementById(`sup_code_${sIdx}`);
+        const nameEl = document.getElementById(`sup_name_${sIdx}`);
+        const oldCode = s.code;
+        const newCode = parseInt(codeEl.value);
+        if (oldCode !== newCode) { codeMap[oldCode] = newCode; s.code = newCode; }
+        if (nameEl) s.name = nameEl.value.trim();
+        const lotsObj = {};
+        lots.forEach((l, lIdx) => {
+            const lotEl = document.getElementById(`sup_lot_${sIdx}_${lIdx}`);
+            if (lotEl) lotsObj[l] = parseInt(lotEl.value) === 1 ? 1 : 0;
+        });
+        s.lots = lotsObj;
+    });
+
+    if (Object.keys(codeMap).length > 0) {
+        Object.keys(selectedSuppliersMap).forEach(lot => {
+            Object.keys(selectedSuppliersMap[lot]).forEach(itemIdx => {
+                selectedSuppliersMap[lot][itemIdx] = selectedSuppliersMap[lot][itemIdx].map(c => (codeMap[c] !== undefined ? codeMap[c] : c));
+            });
+        });
+        Object.keys(enteredPricesMap).forEach(lot => {
+            Object.keys(enteredPricesMap[lot]).forEach(itemIdx => {
+                const newPricesObj = {};
+                Object.keys(enteredPricesMap[lot][itemIdx]).forEach(oldC => {
+                    const mappedCode = (codeMap[oldC] !== undefined ? codeMap[oldC] : oldC);
+                    newPricesObj[mappedCode] = enteredPricesMap[lot][itemIdx][oldC];
+                });
+                enteredPricesMap[lot][itemIdx] = newPricesObj;
+            });
+        });
+    }
+
+    persistAll();
+    renderManageSuppliersTable();
+    renderHomeStats();
+    alert("የአቅራቢዎች መረጃዎች በተሳካ ሁኔታ ተቀምጠዋል / ተዘምነዋል!");
+}
+
+/* ================= TAB 9 & 10: APPROVE ================= */
+function renderApproveUpdateTable() {
+    const lotName = document.getElementById('approveLotSelect').value || getActiveLotNames()[0];
+    if (!lotName) return;
+    const items = catalogItemsMaster[lotName] || [];
+    const lotPrices = enteredPricesMap[lotName] || {};
+    const lotSel = selectedSuppliersMap[lotName] || {};
+    const thead = document.getElementById('approve-thead');
+    const tbody = document.getElementById('approve-tbody');
+    const eligible = suppliersMasterList.filter(s => s.lots && s.lots[lotName] === 1);
+
+    let h = `<tr><th>ተ.ቁ</th><th>የእቃው አይነት</th><th>መግለጫ</th><th>መለኪያ</th><th>ብዛት</th>
+        <th>የገበያ ጥናት ዋጋ</th><th>አነስተኛ የነጠላ ዋጋ</th><th>ቶታል አነስተኛ ዋጋ</th>`;
+    eligible.forEach(sup => { h += `<th style="text-align:center;">[ኮድ ${sup.code}] ${sup.name}</th>`; });
+    h += `</tr>`;
+    thead.innerHTML = h;
+    tbody.innerHTML = '';
+    items.forEach((item, idx) => {
+        const tr = document.createElement('tr');
+        const ip = lotPrices[idx] || {};
+        const sel = lotSel[idx] || [];
+        const mkt = item.marketPrice || 0;
+        const qty = parseFloat(item.qty) || 0;
+        const { low } = getLowestBid(ip, sel);
+        const total = (low !== null && qty > 0) ? low * qty : null;
+        const mktFmt = mkt > 0 ? mkt.toLocaleString('en-US', { minimumFractionDigits: 2 }) : '-';
+        let r = `<td><strong>${item.num}</strong></td><td><strong>${item.name}</strong></td>
+            <td style="font-size:11px;color:#555;">${item.spec || '-'}</td><td>${item.unit || '-'}</td>
+            <td><strong>${item.qty}</strong></td>
+            <td style="font-weight:bold;color:var(--primary-navy);">${mktFmt}</td>
+            <td style="font-weight:bold;color:var(--win-text);">${low !== null ? low.toLocaleString('en-US', { minimumFractionDigits: 2 }) : '-'}</td>
+            <td style="font-weight:bold;color:var(--primary-navy);">${total !== null ? total.toLocaleString('en-US', { minimumFractionDigits: 2 }) : '-'}</td>`;
+        r += buildSupplierStatusRow(ip, sel, eligible, mkt, low);
+        tr.innerHTML = r;
+        tbody.appendChild(tr);
+    });
+
+    const comm = tenderCommentsMap[lotName] || 'አስተያየት አልሰጠም';
+    document.getElementById('lot-comment-display').innerText = `የተሰጠ አስተያየት: ${comm}`;
+}
+
+function addTenderComment() {
+    const lotName = document.getElementById('approveLotSelect').value;
+    const comment = prompt("እባክዎ ለዚህ ሎት የሚሰጡትን አስተያየት ያስገቡ:");
+    if (comment !== null) {
+        tenderCommentsMap[lotName] = comment;
+        persistAll();
+        renderApproveUpdateTable();
+        alert("አስተያየት ተቀምጧል!");
+    }
+}
+
+function approveTenderProcess() {
+    const lotName = document.getElementById('approveLotSelect').value;
+    approvedTendersMap[lotName] = { date: todayDateStr, comment: tenderCommentsMap[lotName] || 'ጸድቋል', status: 'Approved' };
+    persistAll();
+    renderApprovedLotsTable();
+    alert(`ሎት ${lotName} በተሳካ ሁኔታ ጸድቆ ወደ 'የተመረጡ ሎቶች' ተልኳል!`);
+}
+
+function renderApprovedLotsTable() {
+    const tbody = document.getElementById('approved-lots-tbody');
+    tbody.innerHTML = '';
+    let idx = 1;
+    Object.entries(approvedTendersMap).forEach(([lot, data]) => {
+        tbody.innerHTML += `<tr><td>${idx++}</td><td><strong>${lot}</strong></td>
+            <td>${data.comment}</td><td>${data.date}</td>
+            <td><span class="badge-win">${data.status}</span></td></tr>`;
+    });
+    if (idx === 1) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:15px;color:#888;">እስካሁን የጸደቀ ሎት የለም።</td></tr>';
+}
+
+/* ================= BOOTSTRAP ================= */
+document.addEventListener('DOMContentLoaded', () => {
+    syncAllLotDropdowns();
+    loadIsoCertFromStorage();
+    if (restoreSession() && currentUser) {
+        document.getElementById('loginOverlay').classList.remove('active');
+        updateUserInterface();
+        updateTabVisibility();
+        actuallyOpenTab('Home');
+    } else {
+        document.getElementById('loginOverlay').classList.add('active');
+    }
+});
+</script>
+</body>
+</html>
